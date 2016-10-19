@@ -33,7 +33,7 @@ static bool check_compile(GLuint shader, GLenum type)
 	}
 	return false;
 }
-bool shader_source(struct shader_program *self, GLenum type, const char *str, unsigned int size)
+bool shader_source(struct shader_program *self, GLenum type, const char *str, int size)
 {
 	GLuint shader = glCreateShader(type);
 	int sz[1] = { size };

@@ -17,13 +17,11 @@ mat4 rotationMatrix(vec3 axis, float angle)
                 oc * axis.z * axis.x - axis.y * s,  oc * axis.y * axis.z + axis.x * s,  oc * axis.z * axis.z + c,           0.0,
                 0.0,                                0.0,                                0.0,                                1.0);
 }
+varying vec4 texcoord;
 void main(void)
 {
-
+	texcoord = in_Position;
 	vec4 tmp = vec4(in_Position.xyz, 1.0);
-	tmp = rotationMatrix(vec3(1,1,1), time)*tmp;
-	tmp.xy -= 5.25;
-	tmp.z += 10.5;
-	gl_Position = projection*tmp;
+	gl_Position = gl_ModelViewProjectionMatrix*tmp;
 }
 

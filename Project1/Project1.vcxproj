@@ -166,6 +166,7 @@
     <ClCompile Include="chunk.cpp" />
     <ClCompile Include="shader.cpp" />
     <ClCompile Include="noise.cpp" />
+    <ClCompile Include="superchunk.cpp" />
     <ClCompile Include="winmain.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

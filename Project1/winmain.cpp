@@ -8,6 +8,7 @@
 #include <GL/GL.h>
 
 #pragma comment (lib, "opengl32.lib")
+#pragma comment (lib, "glu32.lib")
 #pragma comment (lib, "Dependencies/glew/glew32s.lib")
 
 static HDC hdc;
@@ -21,7 +22,7 @@ static GLuint m_vaoID[2];
 static GLuint m_vboID[3];
 static GLuint fbos[2];
 static GLuint texs[2];
-static chunk *cnk;
+static superchunk *cnk;
 __declspec(align(16)) static float quad[] =  {  -1.0f, -1.0f, 0.0f,
 1.0f, -1.0f, 0.0f,
 1.0f, 1.0f, 0.0f,
@@ -36,15 +37,6 @@ void init_quad()
 {
 	glBindVertexArray(m_vaoID[1]);
 
-
-
-
-
-
-}
-void draw_quad()
-{
-	glBindVertexArray(m_vaoID[1]);
 	glBindBuffer(GL_ARRAY_BUFFER, m_vboID[1]);
 	glBufferData(GL_ARRAY_BUFFER, 80, quad, GL_STATIC_DRAW);
 	glEnableVertexAttribArray(0);
@@ -52,10 +44,17 @@ void draw_quad()
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void *)48);
 
+
+
+	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(1);
+}
+void draw_quad()
+{
+	glBindVertexArray(m_vaoID[1]);
+
 	glBindTexture(GL_TEXTURE_2D, texs[0]);
 	glDrawArrays(GL_QUADS, 0, 4);
-	glDisableVertexAttribArray(0);
-	glDisableVertexAttribArray(1);
 
 }
 HINSTANCE hInstance;
@@ -83,20 +82,26 @@ void init()
 	glBindVertexArray(m_vaoID[0]);
 	glGenTextures(1, texs);
 	glEnable(GL_TEXTURE_2D);
+	glEnable(GL_CULL_FACE);
+	glEnable(GL_DEPTH_TEST);
 	glBindTexture(GL_TEXTURE_2D, texs[0]);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	//NULL means reserve texture memory, but texels are undefined
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 	glGenFramebuffers(2, fbos);
 	glBindFramebuffer(GL_FRAMEBUFFER, fbos[0]);
+	
+
+	GLuint depthrenderbuffer;
+	glGenRenderbuffers(1, &depthrenderbuffer);
+	glBindRenderbuffer(GL_RENDERBUFFER, depthrenderbuffer);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texs[0], 0);
-	if (glCheckFramebufferStatus(fbos[0]) != GL_FRAMEBUFFER_COMPLETE)
-	{
-		OutputDebugStringA("BAD BAD FRAMEBUFFER\n");
-	}
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthrenderbuffer);
+	assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	shader_init(&sp);
 	load_shader_from_resource(&sp, IDR_SHADER1, GL_FRAGMENT_SHADER);
@@ -107,13 +112,13 @@ void init()
 	load_shader_from_resource(&quadp,IDR_SHADER4, GL_VERTEX_SHADER);
 
 	glUseProgram(sp.program);
-	cnk = new chunk();
-	for (int i = 0; i < 16; i++)
-		for (int j = 0; j < 16; j++)
+	cnk = new superchunk();
+	for (int i = 0; i < 256; i++)
+		for (int j = 0; j < 256; j++)
 			for (int k = 0; k < 16; k++)
-				if ((((float)rand()) / RAND_MAX) > 0.9)
-				//	if((i-8)*(i-8)+ (j - 8)*(j - 8)+ (k - 8)*(k- 8) < 32)
-					cnk->set(i, j, k, 200);
+				if ((((float)rand()) / RAND_MAX) > 10*(((float)rand()) / RAND_MAX)*k)
+					//if((i-8)*(i-8)+ (j - 8)*(j - 8)+ (k - 8)*(k- 8) < 32)
+					cnk->set(i, j, k, rand());
 	cnk->update();
 
 	init_quad();
@@ -123,30 +128,30 @@ void init()
 float x = 0, y = 0, z = 0;
 void render()
 {
-	glBindFramebuffer(GL_FRAMEBUFFER, fbos[0]);
+	glMatrixMode(GL_PROJECTION);
+	
+	glLoadIdentity();
+
+	gluPerspective(90, (float)width / height, 0.01, 1000);
+	
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+
+	gluLookAt(50+50*sin(time), 50+50*cos(time), 10, 100, 100, 4, 0, 0, 1);
+	
+	glBindFramebuffer(GL_FRAMEBUFFER,fbos[0]);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glUseProgram(sp.program);
-	glUniform1f(glGetUniformLocation(sp.program, "rotate"), 0.01*time);
-	glUniform1f(glGetUniformLocation(sp.program, "time"), time);
 	glBindVertexArray(m_vaoID[0]);
-
-	//glViewport(0, 0, 512, 512);
+	glViewport(0, 0, width, height);
 	cnk->render();
-	time += 0.005;
-	glUniform1f(glGetUniformLocation(sp.program, "rotate"), 0.01*time);
-	glUniform1f(glGetUniformLocation(sp.program, "time"), time);
-	time -= 0.005;
 	time += 0.01;
-	cnk->render();
+	
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	//glViewport(0, 0, width, height);
+	glViewport(0, 0, width, height);
 	glUseProgram(quadp.program);
-	glUniform1f(glGetUniformLocation(quadp.program, "rotate"), 0.01*time);
-	glUniform1f(glGetUniformLocation(quadp.program, "time"), time);
 	draw_quad();
-// select first VAO
-	//glBindVertexArray(0);
 }
 int WINAPI WinMain(HINSTANCE hInstance,
 	HINSTANCE hprevinstance,
@@ -187,6 +192,10 @@ int WINAPI WinMain(HINSTANCE hInstance,
 			break;
 
 		render();
+		GLenum err;
+		while ((err = glGetError()) != GL_NO_ERROR) {
+			OutputDebugStringA((char *)gluErrorString(err));
+		}
 		SwapBuffers(hdc);
 	}
 	return msg.wParam;
@@ -256,8 +265,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		width = LOWORD(lParam);
 		height = HIWORD(lParam);
 		glViewport(0, 0,  width, height);
-
-
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texs[0], 0);
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
 		break;
 	}
 	case WM_SETCURSOR:

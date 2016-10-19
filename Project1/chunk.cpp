@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#pragma warning(disable:4554)
 #define byte4(x,y,z,w) ((w << 24) | (z << 16) | (y << 8) | x)
 chunk::chunk() {
 	memset(blk, 0, sizeof(blk));
@@ -11,7 +12,7 @@ chunk::~chunk() {
 	glDeleteBuffers(1, &vbo);
 }
 
-GLubyte chunk::get(int x, int y, int z) {
+GLubyte chunk::get(int x, int y, int z) const {
 	return blk[x][y][z];
 }
 
@@ -95,10 +96,7 @@ void chunk::render() {
 	// If this chunk is empty, we don't need to draw anything.
 	if (!elements)
 		return;
-
-	//glEnable(GL_CULL_FACE);
-	//glEnable(GL_DEPTH_TEST);
-
+	
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glVertexAttribPointer(0, 4, GL_BYTE, GL_FALSE, 0, 0);
 	glEnableVertexAttribArray(0);

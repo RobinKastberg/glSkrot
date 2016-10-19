@@ -21,7 +21,7 @@
 #include <memory.h>
 #include <tchar.h>
 #include <math.h>
-
+#include <assert.h>
 
 // TODO: reference additional headers your program requires here
 #include "shader.h"
