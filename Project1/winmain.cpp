@@ -13,13 +13,16 @@
 static HDC hdc;
 static HGLRC hglrc;
 static HWND hwnd;
+static int width;
+static int height;
 static struct shader_program sp;
+static struct shader_program quadp;
 static GLuint m_vaoID[2];
 static GLuint m_vboID[3];
 static GLuint fbos[2];
 static GLuint texs[2];
 static chunk *cnk;
-float quad[] =  {  -1.0f, -1.0f, 0.0f,
+__declspec(align(16)) static float quad[] =  {  -1.0f, -1.0f, 0.0f,
 1.0f, -1.0f, 0.0f,
 1.0f, 1.0f, 0.0f,
 -1.0f, 1.0f, 0.0f,
@@ -33,37 +36,38 @@ void init_quad()
 {
 	glBindVertexArray(m_vaoID[1]);
 
-	glBindBuffer(GL_ARRAY_BUFFER, m_vboID[1]);
-	glBufferData(GL_ARRAY_BUFFER, 80, quad, GL_STATIC_DRAW);
-
-	glEnableVertexAttribArray(0);
-	glEnableVertexAttribArray(1);
-
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void *)48);
 
 
 
-	glBindTexture(GL_TEXTURE_2D, 0);
+
+
 }
 void draw_quad()
 {
 	glBindVertexArray(m_vaoID[1]);
 	glBindBuffer(GL_ARRAY_BUFFER, m_vboID[1]);
+	glBufferData(GL_ARRAY_BUFFER, 80, quad, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void *)48);
 
 	glBindTexture(GL_TEXTURE_2D, texs[0]);
 	glDrawArrays(GL_QUADS, 0, 4);
+	glDisableVertexAttribArray(0);
+	glDisableVertexAttribArray(1);
+
 }
 HINSTANCE hInstance;
 float time = 0;
-void load_shader_from_resource(int res, GLenum type)
+void load_shader_from_resource(struct shader_program *p, int res, GLenum type)
 {
 	HRSRC hRes = FindResourceA(hInstance, MAKEINTRESOURCEA(res), "SHADER");
 	HGLOBAL hData = LoadResource(hInstance, hRes);
 	LPVOID frag = LockResource(hData);
-	OutputDebugStringA((char *)frag);
+	//OutputDebugStringA((char *)frag);
 	OutputDebugStringA("WAT");
-	shader_source(&sp, type, (char *)frag, SizeofResource(hInstance, hRes));
+	shader_source(p, type, (char *)frag, SizeofResource(hInstance, hRes));
 	UnlockResource(hData);
 	FreeResource(hRes);
 }
@@ -72,22 +76,20 @@ void init()
 	wglSwapIntervalEXT(1);
 
 	glClearColor(1, 1, 0, 1);
-	glViewport(0, 0, 640, 480);
 	// Two VAOs allocation
 	glGenVertexArrays(2, &m_vaoID[0]);
-
+	glGenBuffers(2, &m_vboID[0]);
 	// First VAO setup
 	glBindVertexArray(m_vaoID[0]);
-
 	glGenTextures(1, texs);
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, texs[0]);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	//NULL means reserve texture memory, but texels are undefined
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 256, 256, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 	glGenFramebuffers(2, fbos);
 	glBindFramebuffer(GL_FRAMEBUFFER, fbos[0]);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texs[0], 0);
@@ -97,8 +99,13 @@ void init()
 	}
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	shader_init(&sp);
-	load_shader_from_resource(IDR_SHADER1, GL_FRAGMENT_SHADER);
-	load_shader_from_resource(IDR_SHADER2, GL_VERTEX_SHADER);
+	load_shader_from_resource(&sp, IDR_SHADER1, GL_FRAGMENT_SHADER);
+	load_shader_from_resource(&sp, IDR_SHADER2, GL_VERTEX_SHADER);
+
+	shader_init(&quadp);
+	load_shader_from_resource(&quadp,IDR_SHADER3, GL_FRAGMENT_SHADER);
+	load_shader_from_resource(&quadp,IDR_SHADER4, GL_VERTEX_SHADER);
+
 	glUseProgram(sp.program);
 	cnk = new chunk();
 	for (int i = 0; i < 16; i++)
@@ -108,24 +115,36 @@ void init()
 				//	if((i-8)*(i-8)+ (j - 8)*(j - 8)+ (k - 8)*(k- 8) < 32)
 					cnk->set(i, j, k, 200);
 	cnk->update();
+
+	init_quad();
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 float x = 0, y = 0, z = 0;
 void render()
 {
-
+	glBindFramebuffer(GL_FRAMEBUFFER, fbos[0]);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glUseProgram(sp.program);
 	glUniform1f(glGetUniformLocation(sp.program, "rotate"), 0.01*time);
 	glUniform1f(glGetUniformLocation(sp.program, "time"), time);
 	glBindVertexArray(m_vaoID[0]);
-	glBindFramebuffer(GL_FRAMEBUFFER, fbos[0]);
-	glUseProgram(sp.program);
+
+	//glViewport(0, 0, 512, 512);
+	cnk->render();
+	time += 0.005;
+	glUniform1f(glGetUniformLocation(sp.program, "rotate"), 0.01*time);
+	glUniform1f(glGetUniformLocation(sp.program, "time"), time);
+	time -= 0.005;
+	time += 0.01;
 	cnk->render();
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glUseProgram(0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	//glViewport(0, 0, width, height);
+	glUseProgram(quadp.program);
+	glUniform1f(glGetUniformLocation(quadp.program, "rotate"), 0.01*time);
+	glUniform1f(glGetUniformLocation(quadp.program, "time"), time);
 	draw_quad();
-	time += 0.001;
 // select first VAO
 	//glBindVertexArray(0);
 }
@@ -234,7 +253,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	{
 		// resize the viewport after the window had been resized
 		//Resize(LOWORD(lparam), HIWORD(lparam));
-		glViewport(0, 0, LOWORD(lParam), HIWORD(lParam));
+		width = LOWORD(lParam);
+		height = HIWORD(lParam);
+		glViewport(0, 0,  width, height);
 
 
 		break;

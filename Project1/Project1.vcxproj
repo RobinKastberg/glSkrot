@@ -180,10 +180,10 @@
   <ItemGroup>
     <None Include="main.frag" />
     <None Include="main.vert" />
-    <None Include="shader3.bin" />
-    <None Include="shader4.bin" />
-    <None Include="shader5.bin" />
-    <None Include="shader6.bin" />
+    <None Include="quad.frag" />
+    <None Include="quad.vert" />
+    <None Include="shader7.bin" />
+    <None Include="shader8.bin" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

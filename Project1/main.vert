@@ -24,7 +24,6 @@ void main(void)
 	tmp = rotationMatrix(vec3(1,1,1), time)*tmp;
 	tmp.xy -= 5.25;
 	tmp.z += 10.5;
-	vec4 tmp2 = rotationMatrix(vec3(0,0,1), rotate)*tmp;
-	gl_Position = projection*tmp2;
+	gl_Position = projection*tmp;
 }
 

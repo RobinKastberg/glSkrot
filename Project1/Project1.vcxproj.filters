@@ -62,17 +62,13 @@
   <ItemGroup>
     <None Include="main.frag" />
     <None Include="main.vert" />
-    <None Include="shader3.bin">
+    <None Include="shader7.bin">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="shader4.bin">
+    <None Include="shader8.bin">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="shader5.bin">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="shader6.bin">
-      <Filter>Resource Files</Filter>
-    </None>
+    <None Include="quad.vert" />
+    <None Include="quad.frag" />
   </ItemGroup>
 </Project>
