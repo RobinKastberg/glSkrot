@@ -16,6 +16,7 @@ static HGLRC hglrc;
 static HWND hwnd;
 static int width;
 static int height;
+static int cameraLoc, tex1Loc, tex2Loc, tex3Loc;
 struct shader_program sp;
 struct shader_program quadp;
 static GLuint m_vaoID[2];
@@ -33,6 +34,25 @@ __declspec(align(16)) static float quad[] =  {  -1.0f, -1.0f, 0.0f,
 1.0f, 1.0f,
 0.0f, 1.0f
 };
+void APIENTRY openglCallbackFunction(GLenum source,
+	GLenum type,
+	GLuint id,
+	GLenum severity,
+	GLsizei length,
+	const GLchar* message,
+	const void* userParam) {
+
+	OutputDebugStringA(message);
+}
+inline void NAME(GLenum type, GLuint id, const char * const name)
+{
+	glObjectLabel(type, id,  strlen(name), name);
+}
+inline void MARKER(const char * const wat)
+{
+	glDebugMessageInsert(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_MARKER, 100, GL_DEBUG_SEVERITY_LOW,
+		strlen(wat), wat);
+}
 void init_quad()
 {
 	glBindVertexArray(m_vaoID[1]);
@@ -46,8 +66,20 @@ void init_quad()
 
 
 
-	glEnableVertexAttribArray(0);
-	glEnableVertexAttribArray(1);
+
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, texs[0]);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, texs[1]);
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, texs[2]);
+	glActiveTexture(GL_TEXTURE4);
+
+	cameraLoc = glGetUniformLocation(quadp.program, "cameraPosition");
+	tex1Loc = glGetUniformLocation(quadp.program, "tex");
+	tex2Loc = glGetUniformLocation(quadp.program, "tex2");
+	tex3Loc = glGetUniformLocation(quadp.program, "tex3");
 }
 void draw_quad()
 {
@@ -71,11 +103,25 @@ void load_shader_from_resource(struct shader_program *p, int res, GLenum type)
 void init()
 {
 	wglSwapIntervalEXT(1);
-
 	glClearColor(1, 1, 0, 1);
 	glEnable(GL_TEXTURE_2D);
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+	glDebugMessageCallback(openglCallbackFunction, nullptr);
+	GLuint unusedIds = 0;
+	glDebugMessageControl(GL_DONT_CARE,
+		GL_DONT_CARE,
+		GL_DONT_CARE,
+		0,
+		&unusedIds,
+		true);
+	glDebugMessageControl(GL_DONT_CARE,
+		GL_DEBUG_TYPE_MARKER,
+		GL_DONT_CARE,
+		0,
+		&unusedIds,
+		false);
 	// Two VAOs allocation
 	glGenVertexArrays(2, &m_vaoID[0]);
 	glGenBuffers(2, &m_vboID[0]);
@@ -139,8 +185,20 @@ void init()
 	cnk->update();
 
 	init_quad();
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	
+	//glEnable(GL_BLEND);
+	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	NAME(GL_TEXTURE, texs[0], "Color texture");
+	NAME(GL_TEXTURE, texs[1], "Normal texture");
+	NAME(GL_TEXTURE, texs[2], "Position texture");
+	NAME(GL_PROGRAM, sp.program, "main");
+	NAME(GL_SHADER, sp.vert_shader, "main");
+	NAME(GL_SHADER, sp.frag_shader, "main");
+	NAME(GL_PROGRAM, quadp.program, "quad");
+	NAME(GL_SHADER, quadp.vert_shader, "quad");
+	NAME(GL_SHADER, quadp.frag_shader, "quad");
+	NAME(GL_FRAMEBUFFER, fbos[0], "Deferred Rendering");
 }
 float x = 0, y = 0, z = 0;
 void render()
@@ -149,15 +207,14 @@ void render()
 	
 	glLoadIdentity();
 	
-	gluPerspective(90, (float)width / height, 0.01, 1000);
+	gluPerspective(90, (float)width / height, 0.01, 100);
 	
-	glUniform3f(glGetUniformLocation(quadp.program, "cameraPosition"),50 + 50 * sin(time), 50 + 50 * cos(time), 10);
+	
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	gluLookAt(50 + 50 * sin(time), 50 + 50 * cos(time), 10, 100 * cos(0.2*time), 100 * sin(0.2*time), 4, 0, 0, 1);
 
-
-	
+	MARKER("1 Pass");
 	glBindFramebuffer(GL_FRAMEBUFFER,fbos[0]);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glUseProgram(sp.program);
@@ -165,23 +222,16 @@ void render()
 	glViewport(0, 0, width, height);
 	cnk->render();
 	time += 0.01;
-	
+	MARKER("2 Pass");
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glViewport(0, 0, width, height);
 	glUseProgram(quadp.program);
-
-	glActiveTexture(GL_TEXTURE0);
-	glUniform1i(glGetUniformLocation(quadp.program, "tex"), 0);
-	glBindTexture(GL_TEXTURE_2D, texs[0]);
-
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, texs[1]);
-	glUniform1i(glGetUniformLocation(quadp.program, "tex2"), 1);
-
-	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, texs[2]);
-	glUniform1i(glGetUniformLocation(quadp.program, "tex3"), 2);
+	glBindVertexArray(m_vaoID[1]);
+	glUniform1i(tex1Loc, 0);
+	glUniform1i(tex2Loc, 1);
+	glUniform1i(tex3Loc, 2);
+	glUniform3f(cameraLoc, 50 + 50 * sin(time), 50 + 50 * cos(time), 10);
 
 	draw_quad();
 }
@@ -267,9 +317,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 		int attribs[] =
 		{
-			WGL_CONTEXT_MAJOR_VERSION_ARB, 3,
-			WGL_CONTEXT_MINOR_VERSION_ARB, 1,
+			WGL_CONTEXT_MAJOR_VERSION_ARB, 4,
+			WGL_CONTEXT_MINOR_VERSION_ARB, 2,
 			WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB,
+			WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_DEBUG_BIT_ARB, 
 			0
 		};
 		
@@ -297,13 +348,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		width = LOWORD(lParam);
 		height = HIWORD(lParam);
 		glViewport(0, 0,  width, height);
+		glActiveTexture(GL_TEXTURE3);
 		glBindTexture(GL_TEXTURE_2D, texs[0]);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 		glBindTexture(GL_TEXTURE_2D, texs[1]);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 		glBindTexture(GL_TEXTURE_2D, texs[2]);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-		//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texs[0], 0);
 		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
 		
 		break;

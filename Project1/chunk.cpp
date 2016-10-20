@@ -155,6 +155,5 @@ void chunk::render() {
 	glBindBuffer(GL_ARRAY_BUFFER, vbos[1]);
 	glVertexAttribPointer(1, 4, GL_BYTE, GL_FALSE, 0, 0);
 	glEnableVertexAttribArray(1);
-
 	glDrawArrays(GL_TRIANGLES, 0, elements);
 }

@@ -3,9 +3,9 @@
 #define CX 16
 #define CY 16
 #define CZ 16
-#define SCX 16
-#define SCY 16
-#define SCZ 16
+#define SCX 32
+#define SCY 32
+#define SCZ 32
 struct chunk {
 	GLubyte blk[CX][CY][CZ];
 	GLuint vbos[2];

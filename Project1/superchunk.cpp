@@ -1,6 +1,8 @@
 #include "stdafx.h"
 
 
+extern struct shader_program sp;
+
 
 superchunk::superchunk() {
 	memset(c, 0, sizeof c);
@@ -44,18 +46,17 @@ void superchunk::set(int x, int y, int z, GLubyte type) {
 }
 
 void superchunk::render() {
+
+
+
 	for (int x = 0; x < SCX; x++)
 		for (int y = 0; y < SCY; y++)
 			for (int z = 0; z < SCZ; z++)
 				if (c[x][y][z]) {
 					//glm::translate(glm::mat4(1), glm::vec3(x * CX, y * CY, z * CZ));
 					glPushMatrix();
-		
+					glVertexAttrib3f(2, x * CX, y * CY, z * CZ);
 					glTranslatef(x * CX, y * CY, z * CZ);
-					extern struct shader_program sp;
-					glUniform1f(glGetUniformLocation(sp.program, "dx"), x * CX);
-					glUniform1f(glGetUniformLocation(sp.program, "dy"), y * CY);
-					glUniform1f(glGetUniformLocation(sp.program, "dz"), z * CZ);
 					c[x][y][z]->render();
 					glPopMatrix();
 				}
