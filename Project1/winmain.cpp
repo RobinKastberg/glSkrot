@@ -16,12 +16,12 @@ static HGLRC hglrc;
 static HWND hwnd;
 static int width;
 static int height;
-static struct shader_program sp;
-static struct shader_program quadp;
+struct shader_program sp;
+struct shader_program quadp;
 static GLuint m_vaoID[2];
 static GLuint m_vboID[3];
 static GLuint fbos[2];
-static GLuint texs[2];
+static GLuint texs[3];
 static superchunk *cnk;
 __declspec(align(16)) static float quad[] =  {  -1.0f, -1.0f, 0.0f,
 1.0f, -1.0f, 0.0f,
@@ -52,8 +52,6 @@ void init_quad()
 void draw_quad()
 {
 	glBindVertexArray(m_vaoID[1]);
-
-	glBindTexture(GL_TEXTURE_2D, texs[0]);
 	glDrawArrays(GL_QUADS, 0, 4);
 
 }
@@ -75,22 +73,35 @@ void init()
 	wglSwapIntervalEXT(1);
 
 	glClearColor(1, 1, 0, 1);
+	glEnable(GL_TEXTURE_2D);
+	glEnable(GL_CULL_FACE);
+	glEnable(GL_DEPTH_TEST);
 	// Two VAOs allocation
 	glGenVertexArrays(2, &m_vaoID[0]);
 	glGenBuffers(2, &m_vboID[0]);
 	// First VAO setup
 	glBindVertexArray(m_vaoID[0]);
-	glGenTextures(1, texs);
-	glEnable(GL_TEXTURE_2D);
-	glEnable(GL_CULL_FACE);
-	glEnable(GL_DEPTH_TEST);
+
+	glGenTextures(3, texs);
+
 	glBindTexture(GL_TEXTURE_2D, texs[0]);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	//NULL means reserve texture memory, but texels are undefined
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+
+	glBindTexture(GL_TEXTURE_2D, texs[1]);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	//NULL means reserve texture memory, but texels are undefined
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+
+	glBindTexture(GL_TEXTURE_2D, texs[2]);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	//NULL means reserve texture memory, but texels are undefined
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+
 	glGenFramebuffers(2, fbos);
 	glBindFramebuffer(GL_FRAMEBUFFER, fbos[0]);
 	
@@ -99,8 +110,14 @@ void init()
 	glGenRenderbuffers(1, &depthrenderbuffer);
 	glBindRenderbuffer(GL_RENDERBUFFER, depthrenderbuffer);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
+
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texs[0], 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, texs[1], 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, texs[2], 0);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthrenderbuffer);
+
+	GLenum DrawBuffers[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
+	glDrawBuffers(3, DrawBuffers);
 	assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	shader_init(&sp);
@@ -131,13 +148,15 @@ void render()
 	glMatrixMode(GL_PROJECTION);
 	
 	glLoadIdentity();
-
+	
 	gluPerspective(90, (float)width / height, 0.01, 1000);
 	
+	glUniform3f(glGetUniformLocation(quadp.program, "cameraPosition"),50 + 50 * sin(time), 50 + 50 * cos(time), 10);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
+	gluLookAt(50 + 50 * sin(time), 50 + 50 * cos(time), 10, 100 * cos(0.2*time), 100 * sin(0.2*time), 4, 0, 0, 1);
 
-	gluLookAt(50+50*sin(time), 50+50*cos(time), 10, 100, 100, 4, 0, 0, 1);
+
 	
 	glBindFramebuffer(GL_FRAMEBUFFER,fbos[0]);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -151,6 +170,19 @@ void render()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glViewport(0, 0, width, height);
 	glUseProgram(quadp.program);
+
+	glActiveTexture(GL_TEXTURE0);
+	glUniform1i(glGetUniformLocation(quadp.program, "tex"), 0);
+	glBindTexture(GL_TEXTURE_2D, texs[0]);
+
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, texs[1]);
+	glUniform1i(glGetUniformLocation(quadp.program, "tex2"), 1);
+
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, texs[2]);
+	glUniform1i(glGetUniformLocation(quadp.program, "tex3"), 2);
+
 	draw_quad();
 }
 int WINAPI WinMain(HINSTANCE hInstance,
@@ -265,9 +297,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		width = LOWORD(lParam);
 		height = HIWORD(lParam);
 		glViewport(0, 0,  width, height);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texs[0], 0);
+		glBindTexture(GL_TEXTURE_2D, texs[0]);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+		glBindTexture(GL_TEXTURE_2D, texs[1]);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+		glBindTexture(GL_TEXTURE_2D, texs[2]);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+		//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texs[0], 0);
 		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
+		
 		break;
 	}
 	case WM_SETCURSOR:

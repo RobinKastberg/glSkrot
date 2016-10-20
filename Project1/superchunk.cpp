@@ -50,7 +50,12 @@ void superchunk::render() {
 				if (c[x][y][z]) {
 					//glm::translate(glm::mat4(1), glm::vec3(x * CX, y * CY, z * CZ));
 					glPushMatrix();
+		
 					glTranslatef(x * CX, y * CY, z * CZ);
+					extern struct shader_program sp;
+					glUniform1f(glGetUniformLocation(sp.program, "dx"), x * CX);
+					glUniform1f(glGetUniformLocation(sp.program, "dy"), y * CY);
+					glUniform1f(glGetUniformLocation(sp.program, "dz"), z * CZ);
 					c[x][y][z]->render();
 					glPopMatrix();
 				}

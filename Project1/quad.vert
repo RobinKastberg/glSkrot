@@ -2,7 +2,6 @@
 layout(location = 0) in vec3 pos;
 layout(location = 1) in vec2 coord;
 out vec2 coords;
-out vec3 position;
 uniform float time;
 void main(){
 	coords=coord.st;

@@ -8,7 +8,7 @@
 #define SCZ 16
 struct chunk {
 	GLubyte blk[CX][CY][CZ];
-	GLuint vbo;
+	GLuint vbos[2];
 	GLuint vao;
 	int elements;
 	bool changed;
