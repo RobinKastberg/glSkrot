@@ -46,12 +46,9 @@ void APIENTRY openglCallbackFunction(GLenum source,
 }
 inline void NAME(GLenum type, GLuint id, const char * const name)
 {
-	glObjectLabel(type, id,  strlen(name), name);
-}
-inline void MARKER(const char * const wat)
-{
-	glDebugMessageInsert(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_MARKER, 100, GL_DEBUG_SEVERITY_LOW,
-		strlen(wat), wat);
+	if (glewGetExtension("GL_KHR_debug")) {
+		glObjectLabel(type, id, strlen(name), name);
+	}
 }
 void init_quad()
 {
@@ -108,20 +105,22 @@ void init()
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-	glDebugMessageCallback(openglCallbackFunction, nullptr);
-	GLuint unusedIds = 0;
-	glDebugMessageControl(GL_DONT_CARE,
-		GL_DONT_CARE,
-		GL_DONT_CARE,
-		0,
-		&unusedIds,
-		true);
-	glDebugMessageControl(GL_DONT_CARE,
-		GL_DEBUG_TYPE_MARKER,
-		GL_DONT_CARE,
-		0,
-		&unusedIds,
-		false);
+	if (glewGetExtension("GL_KHR_debug")) {
+		glDebugMessageCallback(openglCallbackFunction, nullptr);
+		GLuint unusedIds = 0;
+		glDebugMessageControl(GL_DONT_CARE,
+			GL_DONT_CARE,
+			GL_DONT_CARE,
+			0,
+			&unusedIds,
+			true);
+		glDebugMessageControl(GL_DONT_CARE,
+			GL_DEBUG_TYPE_MARKER,
+			GL_DONT_CARE,
+			0,
+			&unusedIds,
+			false);
+	}
 	// Two VAOs allocation
 	glGenVertexArrays(2, &m_vaoID[0]);
 	glGenBuffers(2, &m_vboID[0]);
@@ -214,7 +213,6 @@ void render()
 	glLoadIdentity();
 	gluLookAt(50 + 50 * sin(time), 50 + 50 * cos(time), 10, 100 * cos(0.2*time), 100 * sin(0.2*time), 4, 0, 0, 1);
 
-	MARKER("1 Pass");
 	glBindFramebuffer(GL_FRAMEBUFFER,fbos[0]);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glUseProgram(sp.program);
@@ -222,7 +220,6 @@ void render()
 	glViewport(0, 0, width, height);
 	cnk->render();
 	time += 0.01;
-	MARKER("2 Pass");
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glViewport(0, 0, width, height);
@@ -317,8 +314,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 		int attribs[] =
 		{
-			WGL_CONTEXT_MAJOR_VERSION_ARB, 4,
-			WGL_CONTEXT_MINOR_VERSION_ARB, 2,
+			WGL_CONTEXT_MAJOR_VERSION_ARB, 3,
+			WGL_CONTEXT_MINOR_VERSION_ARB, 1,
 			WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB,
 			WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_DEBUG_BIT_ARB, 
 			0
