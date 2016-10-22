@@ -45,7 +45,8 @@ void chunk::update() {
 				GLubyte yplus = blk[x][y+1][z];
 				GLubyte yminus = blk[x][y-1][z];
 				// View from negative x
-				if (x == 0 || !xminus) {
+				/* TODO INVERT CONDITIONS */
+				if (1 || x == 0 || !xminus) {
 					vertex[i++] = byte4(x, y, z, type);
 					normals[j++] = byte4(-1, 0, 0, 0);
 					vertex[i++] = byte4(x, y, z + 1, type);
@@ -59,7 +60,7 @@ void chunk::update() {
 					vertex[i++] = byte4(x, y + 1, z + 1, type);
 					normals[j++] = byte4(-1, 0, 0, 0);
 				}
-				if (!xplus) {
+				if (1 || !xplus) {
 					vertex[i++] = byte4(x + 1, y, z, type);
 					normals[j++] = byte4(1, 0, 0, 0);
 					vertex[i++] = byte4(x + 1, y + 1, z, type);
@@ -73,7 +74,7 @@ void chunk::update() {
 					vertex[i++] = byte4(x + 1, y, z + 1, type);
 					normals[j++] = byte4(1, 0, 0, 0);
 				}
-				if (y==0 ||!yminus) {
+				if (1 || y==0 ||!yminus) {
 					vertex[i++] = byte4(x, y, z, type);
 					normals[j++] = byte4(0, -1, 0, 0);
 					vertex[i++] = byte4(x + 1, y, z, type);
@@ -87,7 +88,7 @@ void chunk::update() {
 					vertex[i++] = byte4(x, y, z + 1, type);
 					normals[j++] = byte4(0, -1, 0, 0);
 				}
-				if (!yplus) {
+				if (1 || !yplus) {
 					vertex[i++] = byte4(x, y + 1, z, type);
 					normals[j++] = byte4(0, 1, 0, 0);
 					vertex[i++] = byte4(x, y + 1, z + 1, type);
@@ -101,7 +102,7 @@ void chunk::update() {
 					vertex[i++] = byte4(x + 1, y + 1, z + 1, type);
 					normals[j++] = byte4(0, 1, 0, 0);
 				}
-				if (z == 0 || !down) {
+				if (1 ||z == 0 || down) {
 					vertex[i++] = byte4(x, y, z, type);
 					normals[j++] = byte4(0, 0, -1, 0);
 					vertex[i++] = byte4(x, y + 1, z, type);
@@ -115,7 +116,7 @@ void chunk::update() {
 					vertex[i++] = byte4(x + 1, y, z, type);
 					normals[j++] = byte4(0, 0, -1, 0);
 				}
-				if (!up) {
+				if (1 ||!up) {
 					vertex[i++] = byte4(x, y, z + 1, type);
 					normals[j++] = byte4(0, 0, 1, 0);
 					vertex[i++] = byte4(x + 1, y, z + 1, type);
