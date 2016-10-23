@@ -1,24 +1,22 @@
 #include "stdafx.h"
 
-
-
-void shader_init(struct shader_program *self) 
+void shader_init(struct shader_program *self)
 {
 	self->program = glCreateProgram();
 }
 static bool check_compile(GLuint shader, GLenum type)
 {
 	int status;
-	void (__stdcall *get)(GLuint shader,GLenum pname,GLint *params);
-	void (__stdcall *getInfo)(GLuint program,GLsizei maxLength,GLsizei *length,GLchar *infoLog);
+	void(__stdcall *get)(GLuint shader, GLenum pname, GLint *params);
+	void(__stdcall *getInfo)(GLuint program, GLsizei maxLength, GLsizei *length, GLchar *infoLog);
 	if (type == GL_LINK_STATUS)
 	{
 		//get = (PFNGLGETSHADERIVPROC)
-		get = (void (__stdcall *)(GLuint, GLenum, GLint *))glGetProgramiv;
-		getInfo = (void(__stdcall *)(GLuint, GLsizei, GLsizei *, GLchar *))glGetProgramInfoLog;
-	} else { 
-		get = (void(__stdcall *)(GLuint, GLenum, GLint *))glGetShaderiv;
-		getInfo = (void(__stdcall *)(GLuint, GLsizei, GLsizei *, GLchar *))glGetShaderInfoLog;
+		get = glGetProgramiv;
+		getInfo = glGetProgramInfoLog;
+	} else {
+		get = glGetShaderiv;
+		getInfo = glGetShaderInfoLog;
 	}
 	get(shader, type, &status);
 	if (status == GL_FALSE) {
@@ -33,6 +31,19 @@ static bool check_compile(GLuint shader, GLenum type)
 	}
 	return false;
 }
+void shader_verify(const struct shader_program *self)
+{
+	char buf[100];
+	int ret;
+
+	glValidateProgram(self->program);
+	glGetProgramiv(self->program, GL_VALIDATE_STATUS, &ret);
+	if (ret == GL_FALSE) {
+		glGetProgramInfoLog(self->program, 100, 0, buf);
+		OutputDebugStringA(buf);
+		exit(1);
+	}
+}
 bool shader_source(struct shader_program *self, GLenum type, const char *str, int size)
 {
 	GLuint shader = glCreateShader(type);
@@ -45,7 +56,8 @@ bool shader_source(struct shader_program *self, GLenum type, const char *str, in
 	{
 		OutputDebugStringA("FRAG");
 		self->frag_shader = shader;
-	} else if (type == GL_VERTEX_SHADER) {
+	}
+	else if (type == GL_VERTEX_SHADER) {
 		OutputDebugStringA("VERT");
 		self->vert_shader = shader;
 	}
