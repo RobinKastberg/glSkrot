@@ -7,6 +7,8 @@ uniform sampler2D tex3;
 uniform vec3 cameraPosition;
 void main(){
 	vec3 image = texture2D(tex, coords).rgb;
+	color_out.rgb = image;
+	return;
 	vec3 normal  = vec3(texture2D(tex2, coords)).rgb;
 	vec3 position  = texture2D(tex3, coords).rgb;
     vec3 light = vec3(150,150,200);

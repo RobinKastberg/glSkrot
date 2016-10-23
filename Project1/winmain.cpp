@@ -6,11 +6,12 @@
 
 #include <windows.h>
 #include <GL/GL.h>
-
+#include "model.h"
 #pragma comment (lib, "opengl32.lib")
 #pragma comment (lib, "glu32.lib")
 #pragma comment (lib, "Dependencies/glew/glew32s.lib")
 
+struct model *cube;
 static HDC hdc;
 static HGLRC hglrc;
 static HWND hwnd;
@@ -182,7 +183,7 @@ void init()
 					//if((i-8)*(i-8)+ (j - 8)*(j - 8)+ (k - 8)*(k- 8) < 32)
 					cnk->set(i, j, k, rand());
 	cnk->update();
-
+	
 	init_quad();
 
 	
@@ -198,8 +199,11 @@ void init()
 	NAME(GL_SHADER, quadp.vert_shader, "quad");
 	NAME(GL_SHADER, quadp.frag_shader, "quad");
 	NAME(GL_FRAMEBUFFER, fbos[0], "Deferred Rendering");
+
+	cube = make_cube();
 }
 float x = 0, y = 0, z = 0;
+
 void render()
 {
 	glMatrixMode(GL_PROJECTION);
@@ -220,7 +224,8 @@ void render()
 	glViewport(0, 0, width, height);
 
 	shader_verify(&sp);
-	cnk->render();
+	//cnk->render();
+	draw(cube);
 
 	time += 0.01;
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
