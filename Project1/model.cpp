@@ -55,14 +55,20 @@ void find_twins(struct edge *edges[], int len)
 }
 void draw(struct model *m)
 {
-	glBegin(GL_TRIANGLES);
+	float *glData = new float[3 * 3 *m->faceCount];
 	for (int i = 0; i < m->faceCount; i++)
 	{
-		glVertexAttrib3fv(0,m->faces[i]->edge->v0->coord);
-		glVertexAttrib3fv(0,m->faces[i]->edge->v1->coord);
-		glVertexAttrib3fv(0,m->faces[i]->edge->next->v0->coord);
+		memcpy(glData + 9 * i, m->faces[i]->edge->v0->coord, sizeof(float) * 3);
+		memcpy(glData + 9 * i + 3, m->faces[i]->edge->v1->coord, sizeof(float) * 3);
+		memcpy(glData + 9 * i + 6, m->faces[i]->edge->next->v0->coord, sizeof(float) * 3);
 	}
-	glEnd();
+
+	glBindBuffer(GL_ARRAY_BUFFER, m->vbo);
+	glBufferData(GL_ARRAY_BUFFER, 3 * m->faceCount * sizeof(float), glData, GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 4, GL_BYTE, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(0);
+	glDrawArrays(GL_TRIANGLES, 0, 3*m->faceCount);
+	delete glData;
 }
 struct model *make_cube()
 {
@@ -100,6 +106,6 @@ struct model *make_cube()
 	m->faceCount = 12;
 	m->verts = &v;
 	m->vertCount = 8;
-
+	glGenBuffers(1, &m->vbo);
 	return m;
 }

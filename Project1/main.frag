@@ -12,7 +12,7 @@ const float LOG2 = 1.442695;
 const vec4 fogColor = vec4(1,1,1,1);
 void main(void)
 {
-	color_out = vec4(1,1,1,1);
+	color_out = vec3(1,1,1);
 	return;
 	color_out = vec3(texcoord.w == 100 ? 1 : 1, 1,0);
 	//color_out.rgb = texcoord.rgb;

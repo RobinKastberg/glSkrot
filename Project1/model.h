@@ -21,6 +21,7 @@ struct model {
 	size_t vertCount;
 	struct edge **edges;
 	size_t edgeCount;
+	GLuint vbo;
 };
 struct edge *edge_new(face *f, vertex *v0, vertex *v1);
 void find_twins(struct edge **edges, int len);
