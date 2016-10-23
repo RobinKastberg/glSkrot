@@ -1,6 +1,4 @@
 #include "stdafx.h"
-extern "C" {
-
 
 void shader_init(struct shader_program *self)
 {
@@ -71,6 +69,4 @@ bool shader_source(struct shader_program *self, GLenum type, const char *str, in
 		check_compile(self->program, GL_LINK_STATUS);
 	}
 	return true;
-}
-
 }
