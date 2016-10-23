@@ -22,7 +22,7 @@ struct shader_program quadp;
 static GLuint m_vaoID[2];
 static GLuint m_vboID[3];
 static GLuint fbos[2];
-static GLuint texs[3];
+static GLuint texs[4];
 static superchunk *cnk;
 __declspec(align(16)) static float quad[] =  {  -1.0f, -1.0f, 0.0f,
 1.0f, -1.0f, 0.0f,
@@ -127,7 +127,7 @@ void init()
 	// First VAO setup
 	glBindVertexArray(m_vaoID[0]);
 
-	glGenTextures(3, texs);
+	glGenTextures(4, texs);
 
 	glBindTexture(GL_TEXTURE_2D, texs[0]);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -147,19 +147,19 @@ void init()
 	//NULL means reserve texture memory, but texels are undefined
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 
+	glBindTexture(GL_TEXTURE_2D, texs[3]);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	//NULL means reserve texture memory, but texels are undefined
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, NULL);
+
 	glGenFramebuffers(2, fbos);
 	glBindFramebuffer(GL_FRAMEBUFFER, fbos[0]);
-	
-
-	GLuint depthrenderbuffer;
-	glGenRenderbuffers(1, &depthrenderbuffer);
-	glBindRenderbuffer(GL_RENDERBUFFER, depthrenderbuffer);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
 
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texs[0], 0);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, texs[1], 0);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, texs[2], 0);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthrenderbuffer);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, texs[3], 0);
 
 	GLenum DrawBuffers[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
 	glDrawBuffers(3, DrawBuffers);
@@ -326,10 +326,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		};
 		
 		hglrc = wglCreateContext(hdc);
-		wglMakeCurrent(hdc, hglrc);
+		wglMakeCurrent(hdc, hglrc);	
 		glewInit();
 		hglrc = wglCreateContextAttribsARB(hdc, 0, attribs);
-
+		assert(hglrc);
 		wglMakeCurrent(NULL, NULL);
 		wglMakeCurrent(hdc, hglrc);
 		OutputDebugStringA((char *)glGetString(GL_VERSION));

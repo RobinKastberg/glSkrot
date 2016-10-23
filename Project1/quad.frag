@@ -19,6 +19,7 @@ void main(){
     vec3 vHalfVector = normalize(reflect(vec3(0,0,1), normal));
     
 
+	color_out.rgb = image;
 	color_out.rgb = max(dot(normal,lightDir),0) * image +
                       pow(max(dot(eyeDir,vHalfVector),0.0),64);
 	color_out.a = 1;
