@@ -173,7 +173,7 @@ void init()
 	load_shader_from_resource(&quadp,IDR_SHADER3, GL_FRAGMENT_SHADER);
 	load_shader_from_resource(&quadp,IDR_SHADER4, GL_VERTEX_SHADER);
 
-	glUseProgram(sp.program);
+
 	cnk = new superchunk();
 	for (int i = 0; i < 256; i++)
 		for (int j = 0; j < 256; j++)
@@ -218,7 +218,10 @@ void render()
 	glUseProgram(sp.program);
 	glBindVertexArray(m_vaoID[0]);
 	glViewport(0, 0, width, height);
+
+	shader_verify(&sp);
 	cnk->render();
+
 	time += 0.01;
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -230,6 +233,7 @@ void render()
 	glUniform1i(tex3Loc, 2);
 	glUniform3f(cameraLoc, 50 + 50 * sin(time), 50 + 50 * cos(time), 10);
 
+	shader_verify(&quadp);
 	draw_quad();
 }
 int WINAPI WinMain(HINSTANCE hInstance,
