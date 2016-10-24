@@ -31,12 +31,15 @@ void main(){
 
 
 
+
 	//color_out.rgb = vec3(visibility);
 	//color_out.a = 1;
 	//color_out = vec4(1,1,0,1);
 	//return;
     vec3 lightDir = lightPos - position.xyz ;
 
+	color_out.rgb = 0.5*normalize(normal) + 0.5;
+	return;
     normal = normalize(normal);
     lightDir = normalize(lightDir);
     
@@ -53,12 +56,12 @@ void main(){
 	shadowCoord = 0.5*shadowCoord + 0.5;
 
 		float visibility = 0.7;
-		float bias = min(0.05 * (1.0 - dot(normal, lightDir)), 0.005); 
+		float bias = 0.005; 
 	shadowCoord.z -= bias;
 if ( texture( shadowTex, shadowCoord.xy ).z  <  shadowCoord.z){
     visibility = 0.1;
 }
-	color_out.rgb =  image * visibility;
+	color_out.rgb =  image * dot(normal, lightDir) * visibility;
 	vec2 diff = 0.5 / textureSize(tex3, 0);
 
 	vec3 pos1 = vec3(texture2D(tex3, coords + vec2(diff.x, 0))).rgb;

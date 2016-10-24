@@ -48,6 +48,7 @@ struct edge *edge_new(struct face *f, struct vertex *v0, struct vertex *v1)
 }
 void chkdsk(struct model *m)
 {
+#ifdef _DEBUG
 	for (int i = 0; i < m->edges.size(); i++)
 	{
 		edge *e = m->edges[i];
@@ -72,6 +73,7 @@ void chkdsk(struct model *m)
 		assert(f->edge->next->face == f);
 		assert(f->edge->next->next->face == f);
 	}
+#endif
 }
 void find_twins(std::vector<edge *> edges)
 {
@@ -86,57 +88,57 @@ void find_twins(std::vector<edge *> edges)
 		}
 		
 }
-
 void draw(struct model *m)
 {
-	float *glData = new float[2 * 18* m->faces.size()];
-	for (int i = 0; i < m->faces.size(); i++)
+	if (m->up_to_date == 0)
 	{
-		float normal[3];
+		m->up_to_date = 1;
+		float *glData = new float[2 * 18 * m->faces.size()];
+		for (int i = 0; i < m->faces.size(); i++)
+		{
+			float normal[3];
 
-		face *f = m->faces[i];
-		edge *e = f->edge;
-		vertex *v;
-		
-
-		float A[3] = {  f->edge->v1->coord[0] - f->edge->v0->coord[0],
-						f->edge->v1->coord[1] - f->edge->v0->coord[1], 
-						f->edge->v1->coord[2] - f->edge->v0->coord[2] };
-		float B[3] = {  f->edge->next->next->v0->coord[0] - f->edge->next->next->v1->coord[0],
-						f->edge->next->next->v0->coord[1] - f->edge->next->next->v1->coord[1],
-						f->edge->next->next->v0->coord[2] - f->edge->next->next->v1->coord[2] };
-		normal[0] = A[1] * B[2] - A[2] * B[1];
-		normal[1] = A[2] * B[0] - A[0] * B[2];
-		normal[2] = A[0] * B[1] - A[1] * B[0];
-		float nrm = sqrt(normal[0] * normal[0] + normal[1] * normal[1] + normal[2] * normal[2]);
-		normal[0] /= nrm;
-		normal[1] /= nrm;
-		normal[2] /= nrm;
+			face *f = m->faces[i];
+			edge *e = f->edge;
+			vertex *v;
 
 
-		memcpy(glData + 36 * i, m->faces[i]->edge->v0->coord, sizeof(float) * 3);
-		memcpy(glData + 36 * i + 3, normal, sizeof(float) * 3);
-		memcpy(glData + 36 * i + 6, m->faces[i]->edge->v1->coord, sizeof(float) * 3);
-		memcpy(glData + 36 * i + 9, normal, sizeof(float) * 3);
-		memcpy(glData + 36 * i + 12, m->faces[i]->edge->next->v0->coord, sizeof(float) * 3);
-		memcpy(glData + 36 * i + 15, normal, sizeof(float) * 3);
-		memcpy(glData + 36 * i + 18, m->faces[i]->edge->next->v1->coord, sizeof(float) * 3);
-		memcpy(glData + 36 * i + 21, normal, sizeof(float) * 3);
-		memcpy(glData + 36 * i + 24, m->faces[i]->edge->next->next->v0->coord, sizeof(float) * 3);
-		memcpy(glData + 36 * i + 27, normal, sizeof(float) * 3);
-		memcpy(glData + 36 * i + 30, m->faces[i]->edge->next->next->v1->coord, sizeof(float) * 3);
-		memcpy(glData + 36 * i + 33, normal, sizeof(float) * 3);
+			float A[3] = { f->edge->v1->coord[0] - f->edge->v0->coord[0],
+							f->edge->v1->coord[1] - f->edge->v0->coord[1],
+							f->edge->v1->coord[2] - f->edge->v0->coord[2] };
+			float B[3] = { f->edge->next->next->v0->coord[0] - f->edge->next->next->v1->coord[0],
+							f->edge->next->next->v0->coord[1] - f->edge->next->next->v1->coord[1],
+							f->edge->next->next->v0->coord[2] - f->edge->next->next->v1->coord[2] };
+			normal[0] = A[1] * B[2] - A[2] * B[1];
+			normal[1] = A[2] * B[0] - A[0] * B[2];
+			normal[2] = A[0] * B[1] - A[1] * B[0];
+			float nrm = sqrt(normal[0] * normal[0] + normal[1] * normal[1] + normal[2] * normal[2]);
+			normal[0] /= nrm;
+			normal[1] /= nrm;
+			normal[2] /= nrm;
+
+
+			memcpy(glData + 18 * i, m->faces[i]->edge->v0->coord, sizeof(float) * 3);
+			memcpy(glData + 18 * i + 3, normal, sizeof(float) * 3);
+			memcpy(glData + 18 * i + 6, m->faces[i]->edge->next->v0->coord, sizeof(float) * 3);
+			memcpy(glData + 18 * i + 9, normal, sizeof(float) * 3);
+			memcpy(glData + 18 * i + 12, m->faces[i]->edge->next->next->v0->coord, sizeof(float) * 3);
+			memcpy(glData + 18 * i + 15, normal, sizeof(float) * 3);
+		}
+		glBindBuffer(GL_ARRAY_BUFFER, m->vbo);
+		glBufferData(GL_ARRAY_BUFFER, 2 * 6 * 3 * m->faces.size() * sizeof(float), glData, GL_DYNAMIC_DRAW);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 24, 0);
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 24, (void *)12);
+		glEnableVertexAttribArray(0);
+		glEnableVertexAttribArray(1);
 	}
-
 	glBindBuffer(GL_ARRAY_BUFFER, m->vbo);
-	glBufferData(GL_ARRAY_BUFFER, 2 * 6 * 3 * m->faces.size() * sizeof(float), glData, GL_DYNAMIC_DRAW);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 24, 0);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 24, (void *)12);
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
 	glLineWidth(5);
-	glDrawArrays(GL_LINES, 0, 6 *  m->faces.size());
-	delete glData;
+	glDrawArrays(GL_TRIANGLES, 0,  3 *  m->faces.size());
 }
 void subdivide(struct model *m)
 {
@@ -150,11 +152,12 @@ void subdivide(struct model *m)
 		vertex *v = m->verts[i];
 		std::vector<vertex *> adjacent;
 
-		for (int j = 0; j<edge_len; j++)
-		{
-			if (edges[j]->v1 == v)
-				adjacent.push_back(m->edges[j]->v0);
-		}
+		edge *e = v->out;
+		do {
+			adjacent.push_back(e->v1);
+
+			e = e->pair->next;
+		} while (e != v->out);
 		int n = adjacent.size();
 		float beta = n > 3 ? 3.0 / (8.0*n) : 3.0 / 16.0;
 		//float beta = 3.0 / 8.0 + (3.0 / 8.0 + 0.25*cos(2 * 3.1415926535 / n))*(3.0 / 8.0 + 0.25*cos(2 * 3.1415926535 / n));
@@ -433,6 +436,8 @@ struct model *make_model(int *cube_vertices, int *indices, int vsize, int isize)
 
 	}
 	find_twins(m->edges);
+	subdivide(m);
+	subdivide(m);
 	subdivide(m);
 	subdivide(m);
 

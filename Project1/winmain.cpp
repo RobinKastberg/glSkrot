@@ -228,12 +228,22 @@ void init()
 
 	glUseProgram(sp.program);
 	cnk = new superchunk();
-	for (int i = 0; i < 256; i++)
-		for (int j = 0; j < 256; j++)
-			for (int k = 0; k < 16; k++)
-				if ((((float)rand()) / RAND_MAX) > 10 * (((float)rand()) / RAND_MAX)*k)
-					//if((i-8)*(i-8)+ (j - 8)*(j - 8)+ (k - 8)*(k- 8) < 32)
-					cnk->set(i, j, k,1);
+	for (int i = 1; i < 15; i++)
+		for (int j = 1; j < 15; j++)
+		{
+			if (rand() % 2 == 0) {
+				cnk->set(i, j, 1, rand());
+			}
+
+			if (rand() % 3 == 0) {
+				cnk->set(i, j, 3, rand());
+			}
+
+			if (rand() % 5 == 0) {
+				cnk->set(i, j, 5, rand());
+			}
+		}
+	//cnk->set(8, 8, 5, 1);
 	cnk->update();
 	init_quad();
 
@@ -297,9 +307,9 @@ void render()
 
 	
 
-	lookAt.x = 0 + 10 * sin(0.1*time);
-	lookAt.y = 0+ 10 * cos(0.1*time);
-	lookAt.z = 10;
+	lookAt.x = 0 + 20 * sin(0.1*time);
+	lookAt.y = 0+ 20 * cos(0.1*time);
+	lookAt.z = 5;
 	lightPos.z = 100;
 	lightPos.x = lookAt.x;
 	lightPos.y = lookAt.y;
