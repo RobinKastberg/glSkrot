@@ -103,7 +103,7 @@ void init()
 	wglSwapIntervalEXT(1);
 	glClearColor(1, 1, 0, 1);
 	glEnable(GL_TEXTURE_2D);
-	glEnable(GL_CULL_FACE);
+	//glEnable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 	if (glewGetExtension("GL_KHR_debug")) {
@@ -174,7 +174,7 @@ void init()
 	load_shader_from_resource(&quadp,IDR_SHADER3, GL_FRAGMENT_SHADER);
 	load_shader_from_resource(&quadp,IDR_SHADER4, GL_VERTEX_SHADER);
 
-
+	/*
 	cnk = new superchunk();
 	for (int i = 0; i < 256; i++)
 		for (int j = 0; j < 256; j++)
@@ -183,7 +183,7 @@ void init()
 					//if((i-8)*(i-8)+ (j - 8)*(j - 8)+ (k - 8)*(k- 8) < 32)
 					cnk->set(i, j, k, rand());
 	cnk->update();
-	
+	*/
 	init_quad();
 
 	
@@ -215,7 +215,8 @@ void render()
 	
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	gluLookAt(50 + 50 * sin(time), 50 + 50 * cos(time), 10, 100 * cos(0.2*time), 100 * sin(0.2*time), 4, 0, 0, 1);
+	//gluLookAt(50 + 50 * sin(time), 50 + 50 * cos(time), 10, 100 * cos(0.2*time), 100 * sin(0.2*time), 4, 0, 0, 1);
+	gluLookAt(0 + 2 * sin(0.3*time), 0 + 2 * cos(0.3*time), 2, 0, 0, 0, 0, 0, 1);
 
 	glBindFramebuffer(GL_FRAMEBUFFER,fbos[0]);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -361,7 +362,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 		glBindTexture(GL_TEXTURE_2D, texs[2]);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
+		glBindTexture(GL_TEXTURE_2D, texs[3]);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, NULL);
 		
 		break;
 	}

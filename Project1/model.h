@@ -1,26 +1,32 @@
 #pragma once
+
+#include <vector>
+
 struct edge {
 	struct vertex *v0;
 	struct vertex *v1;
 	struct edge *pair;
 	struct face *face;
 	struct edge *next;
+	float newCoord[3];
+	int mark = 0;
 };
 struct vertex {
 	struct edge *out; 
 	float coord[3];
+	float newCoord[3];
+	int mark = 0;
 };
 struct face {
 	struct edge *edge;
 	float normal[3];
 };
 struct model {
-	struct face **faces;
-	size_t faceCount;
-	struct vertex **verts;
-	size_t vertCount;
-	struct edge **edges;
-	size_t edgeCount;
+	std::vector<face*>   faces;
+	std::vector<vertex*> verts;
+	std::vector<edge*>   edges;
+	
+
 	GLuint vbo;
 };
 struct edge *edge_new(face *f, vertex *v0, vertex *v1);
