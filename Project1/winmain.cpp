@@ -180,7 +180,7 @@ void init()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 	GLfloat borderColor[] = { 1.0, 1.0, 1.0, 1.0 };
 	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, 8192, 8192, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, 8192, 8192, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, NULL);
 
 	glGenFramebuffers(2, fbos);
 
@@ -188,20 +188,6 @@ void init()
 	glBindFramebuffer(GL_FRAMEBUFFER, fbos[0]);
 	
 
-
-	GLenum DrawBuffers[MRTS];
-	for (int i = 0; i < MRTS; i++)
-	{
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0+i, GL_TEXTURE_2D, texs[i], 0);
-		DrawBuffers[i] = GL_COLOR_ATTACHMENT0 + i;
-	}
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, texs[MRTS], 0);
-
-	glDrawBuffers(MRTS-1, DrawBuffers);
-	assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
-
-
-	/* SHADOW FBO */
 
 	GLenum DrawBuffers[MRTS];
 	for (int i = 0; i < MRTS; i++)
@@ -243,36 +229,9 @@ void init()
 	for (int i = 0; i < 256; i++)
 		for (int j = 0; j < 256; j++)
 			for (int k = 0; k < 16; k++)
-				if ((((float)rand()) / RAND_MAX) > 10*(((float)rand()) / RAND_MAX)*k)
+				if ((((float)rand()) / RAND_MAX) > 10 * (((float)rand()) / RAND_MAX)*k)
 					//if((i-8)*(i-8)+ (j - 8)*(j - 8)+ (k - 8)*(k- 8) < 32)
-					if (rand() % 20 == 0) {
-						cnk->set(i, j, k, rand());
-						cnk->set(i, j + 1, k, rand());
-						cnk->set(i + 1, j + 1, k, rand());
-						cnk->set(i + 1, j, k, rand());
-					}
-
-					if (rand() % 20 == 3) {
-						cnk->set(i, j, k, rand());
-						cnk->set(i, j, k+1, rand());
-						cnk->set(i, j, k+2, rand());
-						cnk->set(i, j, k+3, rand());
-					}
-
-					if (rand() % 20 == 5) {
-						cnk->set(i, j, k, rand());
-						cnk->set(i, j, k + 1, rand());
-						cnk->set(i+1, j, k + 1, rand());
-						cnk->set(i+2, j, k + 1, rand());
-					}
-
-					if (rand() % 20 == 7) {
-						cnk->set(i, j, k+1, rand());
-						cnk->set(i, j+1, k+1, rand());
-						cnk->set(i, j+1, k, rand());
-						cnk->set(i, j+2, k + 1, rand());
-					}
-				} */
+					cnk->set(i, j, k,1);
 	cnk->update();
 
 	init_quad();
@@ -329,14 +288,14 @@ void render()
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	cameraPosition.x = 256 + 256 * sin(0.025*time);
-	cameraPosition.y = 256 + 256 * cos(0.025*time);
+	cameraPosition.x = 0 + 10 * sin(0.025*time);
+	cameraPosition.y = 0 + 10 * cos(0.025*time);
 	cameraPosition.z = 10;
 
 	
 
-	lookAt.x = 256 + 240 * sin(0.1*time);
-	lookAt.y = 256 + 240 * cos(0.1*time);
+	lookAt.x = 0 + 10 * sin(0.1*time);
+	lookAt.y = 0+ 10 * cos(0.1*time);
 	lookAt.z = 10;
 	lightPos.z = 100;
 	lightPos.x = lookAt.x;
@@ -522,7 +481,19 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		glBindTexture(GL_TEXTURE_2D, texs[MRTS]);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, NULL);
 		
-		
+		glBindFramebuffer(GL_FRAMEBUFFER, fbos[0]);
+
+
+
+		GLenum DrawBuffers[MRTS];
+		for (int i = 0; i < MRTS; i++)
+		{
+			//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, texs[i], 0);
+			DrawBuffers[i] = GL_COLOR_ATTACHMENT0 + i;
+		}
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, texs[MRTS], 0);
+
+		glDrawBuffers(MRTS - 1, DrawBuffers);
 		break;
 	}
 	case WM_SETCURSOR:
