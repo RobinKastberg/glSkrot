@@ -1,5 +1,6 @@
 #pragma once
 #include "stdafx.h"
+#include "model.h"
 #define CX 16
 #define CY 16
 #define CZ 16
@@ -12,7 +13,7 @@ struct chunk {
 	GLuint vao;
 	int elements;
 	bool changed;
-
+	model *m;
 	chunk();
 
 	~chunk();

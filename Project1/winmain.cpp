@@ -6,10 +6,12 @@
 
 #include <windows.h>
 #include <GL/GL.h>
-
+#include "model.h"
 #pragma comment (lib, "opengl32.lib")
 #pragma comment (lib, "glu32.lib")
 #pragma comment (lib, "Dependencies/glew/glew32s.lib")
+
+struct model *cube;
 #define MRTS 4
 static HDC hdc;
 static HGLRC hglrc;
@@ -127,7 +129,7 @@ void init()
 	//wglSwapIntervalEXT(1);
 	glClearColor(0.5, 0.5, 0.5, 1);
 	glEnable(GL_TEXTURE_2D);
-	glEnable(GL_CULL_FACE);
+	//glEnable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 	if (glewGetExtension("GL_KHR_debug")) {
@@ -233,7 +235,6 @@ void init()
 					//if((i-8)*(i-8)+ (j - 8)*(j - 8)+ (k - 8)*(k- 8) < 32)
 					cnk->set(i, j, k,1);
 	cnk->update();
-
 	init_quad();
 
 	
@@ -249,6 +250,8 @@ void init()
 	NAME(GL_SHADER, quadp.vert_shader, "quad");
 	NAME(GL_SHADER, quadp.frag_shader, "quad");
 	NAME(GL_FRAMEBUFFER, fbos[0], "Deferred Rendering");
+
+	//cube = make_cube();
 }
 float x = 0, y = 0, z = 0;
 
@@ -314,6 +317,9 @@ void render()
 	glClearBufferfv(GL_COLOR, 3, clearValue);
 
 	shader_verify(&sp);
+	//glUseProgram(0);
+	glUniform1f(glGetUniformLocation(sp.program, "time"), time);
+
 	cnk->render();
 	glUniform1i(glGetUniformLocation(sp.program, "isLight"), 1);
 
@@ -450,10 +456,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		};
 		
 		hglrc = wglCreateContext(hdc);
-		wglMakeCurrent(hdc, hglrc);
+		wglMakeCurrent(hdc, hglrc);	
 		glewInit();
 		hglrc = wglCreateContextAttribsARB(hdc, 0, attribs);
-
+		assert(hglrc);
 		wglMakeCurrent(NULL, NULL);
 		wglMakeCurrent(hdc, hglrc);
 		OutputDebugStringA((char *)glGetString(GL_VERSION));
