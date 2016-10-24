@@ -203,6 +203,20 @@ void init()
 
 	/* SHADOW FBO */
 
+	GLenum DrawBuffers[MRTS];
+	for (int i = 0; i < MRTS; i++)
+	{
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0+i, GL_TEXTURE_2D, texs[i], 0);
+		DrawBuffers[i] = GL_COLOR_ATTACHMENT0 + i;
+	}
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, texs[MRTS], 0);
+
+	glDrawBuffers(MRTS-1, DrawBuffers);
+	assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
+
+
+	/* SHADOW FBO */
+
 	glBindFramebuffer(GL_FRAMEBUFFER, fbos[1]);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, texs[MRTS+1], 0);
 
@@ -226,19 +240,10 @@ void init()
 
 	glUseProgram(sp.program);
 	cnk = new superchunk();
-	for (int i = 0; i < 510; i++)
-		for (int j = 0; j < 510; j++) {
-			cnk->set(i, j, 1, rand());
-			int kmax = rand() % 50;
-			if (kmax == 36) kmax = 5 + (rand() % 5);
-			else kmax = 0;
-			for (int k = 0; k < kmax; k++)
-			{
-				cnk->set(i, j, k, rand());
-			}
-		}
-				/*
-				if ((((float)rand()) / RAND_MAX) > 15 * (((float)rand()) / RAND_MAX)*k) {
+	for (int i = 0; i < 256; i++)
+		for (int j = 0; j < 256; j++)
+			for (int k = 0; k < 16; k++)
+				if ((((float)rand()) / RAND_MAX) > 10*(((float)rand()) / RAND_MAX)*k)
 					//if((i-8)*(i-8)+ (j - 8)*(j - 8)+ (k - 8)*(k- 8) < 32)
 					if (rand() % 20 == 0) {
 						cnk->set(i, j, k, rand());
