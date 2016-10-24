@@ -5,7 +5,7 @@ uniform sampler2D tex; // Color
 uniform sampler2D tex2;// Normal
 uniform sampler2D tex3;// Position
 uniform sampler2D tex4;// Lighting
-uniform sampler2D shadowTex; // Shadow
+uniform sampler2DShadow shadowTex; // Shadow
 uniform vec3 cameraPosition;
 uniform int isLight;
 uniform vec3 lightPos;
@@ -38,11 +38,12 @@ void main(){
 	//return;
     vec3 lightDir = lightPos - position.xyz ;
 
-	color_out.rgb = 0.5*normalize(normal) + 0.5;
-	return;
-    normal = normalize(normal);
+	normal = normalize(normal);
     lightDir = normalize(lightDir);
+
+
     
+
     vec3 eyeDir = normalize(cameraPosition-position.xyz);
     vec3 vHalfVector = normalize(reflect(cameraPosition - lightPos, normal));
     
@@ -56,12 +57,12 @@ void main(){
 	shadowCoord = 0.5*shadowCoord + 0.5;
 
 		float visibility = 0.7;
-		float bias = 0.005; 
-	shadowCoord.z -= bias;
-if ( texture( shadowTex, shadowCoord.xy ).z  <  shadowCoord.z){
-    visibility = 0.1;
-}
+		//float bias = 0.005; 
+	shadowCoord.z -= 0.001;
+	visibility = texture( shadowTex, shadowCoord.xyz );
+	visibility = clamp(0.1 + visibility, 0.0, 1.0);
 	color_out.rgb =  image * dot(normal, lightDir) * visibility;
+	//return;
 	vec2 diff = 0.5 / textureSize(tex3, 0);
 
 	vec3 pos1 = vec3(texture2D(tex3, coords + vec2(diff.x, 0))).rgb;

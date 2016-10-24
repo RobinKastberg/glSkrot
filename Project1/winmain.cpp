@@ -167,22 +167,17 @@ void init()
 		}
 	}
 	glBindTexture(GL_TEXTURE_2D, texs[MRTS]);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, NULL);
 
 	glBindTexture(GL_TEXTURE_2D, texs[MRTS+1]);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-	GLfloat borderColor[] = { 1.0, 1.0, 1.0, 1.0 };
-	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, 8192, 8192, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, 1024, 1024, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, NULL);
 
 	glGenFramebuffers(2, fbos);
 
@@ -268,11 +263,11 @@ float x = 0, y = 0, z = 0;
 void light_camera() {
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glOrtho(-50, 50, -50, 50, 0, 1000);
+	glOrtho(-10, 10, -10, 10, 0, 200);
 	//gluPerspective(45, 1, 0.1, 800);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	gluLookAt(lightPos.x, lightPos.y, 100, cameraPosition.x, cameraPosition.y, 0, 0, 0, 1);
+	gluLookAt(10 + 10*sin(0.3*time), 10 + 10*cos(0.3*time), 100, 8,8, 0, 0, 1, 0);
 }
 void render()
 {
@@ -280,7 +275,7 @@ void render()
 
 	glBindFramebuffer(GL_FRAMEBUFFER, fbos[1]);
 	glCullFace(GL_FRONT);
-	glViewport(0, 0, 8192, 8192);
+	glViewport(0, 0, 1024, 1024);
 	glClear(GL_DEPTH_BUFFER_BIT);
 	
 	glUseProgram(shadowp.program);
@@ -301,15 +296,15 @@ void render()
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	cameraPosition.x = 0 + 10 * sin(0.025*time);
-	cameraPosition.y = 0 + 10 * cos(0.025*time);
+	cameraPosition.x = 0 + 10 * sin(0.1*time);
+	cameraPosition.y = 0 + 10 * cos(0.1*time);
 	cameraPosition.z = 10;
 
 	
 
-	lookAt.x = 0 + 20 * sin(0.1*time);
-	lookAt.y = 0+ 20 * cos(0.1*time);
-	lookAt.z = 5;
+	lookAt.x = 8 + 0;
+	lookAt.y = 8+ 0;
+	lookAt.z = 2;
 	lightPos.z = 100;
 	lightPos.x = lookAt.x;
 	lightPos.y = lookAt.y;
@@ -458,8 +453,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 		int attribs[] =
 		{
-			WGL_CONTEXT_MAJOR_VERSION_ARB, 3,
-			WGL_CONTEXT_MINOR_VERSION_ARB, 1,
+			WGL_CONTEXT_MAJOR_VERSION_ARB, 1,
+			WGL_CONTEXT_MINOR_VERSION_ARB, 0,
 			WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB,
 			WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_DEBUG_BIT_ARB, 
 			0
@@ -499,17 +494,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		
 		glBindFramebuffer(GL_FRAMEBUFFER, fbos[0]);
 
-
-
-		GLenum DrawBuffers[MRTS];
-		for (int i = 0; i < MRTS; i++)
-		{
-			//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, texs[i], 0);
-			DrawBuffers[i] = GL_COLOR_ATTACHMENT0 + i;
-		}
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, texs[MRTS], 0);
 
-		glDrawBuffers(MRTS - 1, DrawBuffers);
+
 		break;
 	}
 	case WM_SETCURSOR:

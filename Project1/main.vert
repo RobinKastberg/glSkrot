@@ -11,6 +11,6 @@ void main(void)
 	//tmp.xyz += 0.3*normalize(in_Normal);
 	gl_Position = gl_ModelViewProjectionMatrix*tmp;
 	pos = tmp;
-	normal = in_Normal;
+	normal = gl_NormalMatrix * in_Normal;
 }
 
