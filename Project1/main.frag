@@ -7,6 +7,6 @@ in vec3 normal;
 void main(void)
 {
 	color_out = vec3(1,0,0)*(0.5*pos.x+0.5) + vec3(0,1,0)*(0.5*pos.y+0.5) + vec3(0,0,1)*(0.5*pos.z+0.5);
-	normal_out = normalize(normal);
+	normal_out = 0.5*normalize(normal)+0.5;
 }
 

@@ -4,7 +4,7 @@
 
 #include <memory.h>
 #include <algorithm>
-
+#include <map>
 GLfloat cube_vertices[] = {
 	// front
 	-1.0, -1.0,  1.0,
@@ -75,12 +75,16 @@ void chkdsk(struct model *m)
 }
 void find_twins(std::vector<edge *> edges)
 {
+	std::map< std::pair<vertex *, vertex *>, edge * > Edges;
+	for (int i = 0; i < edges.size(); i++)
+		Edges[std::make_pair(edges[i]->v0, edges[i]->v1)] = edges[i];
 	for (int i = 0; i < edges.size(); i++)
 		if (edges[i]->pair == NULL)
-			for (int j = 0; j < edges.size(); j++)
-				if (edges[i]->v0 == edges[j]->v1
-				 && edges[i]->v1 == edges[j]->v0)
-					edges[i]->pair = edges[j];
+		{
+			edge *pair = Edges[std::make_pair(edges[i]->v1, edges[i]->v0)];
+			edges[i]->pair = pair;
+		}
+		
 }
 
 void draw(struct model *m)
@@ -88,11 +92,27 @@ void draw(struct model *m)
 	float *glData = new float[2 * 18* m->faces.size()];
 	for (int i = 0; i < m->faces.size(); i++)
 	{
-		face *f = m->faces[i];
 		float normal[3];
-		normal[0] = f->edge->v0->coord[1]* f->edge->v1->coord[2] - f->edge->v0->coord[2] * f->edge->v1->coord[1];
-		normal[1] = f->edge->v0->coord[3] * f->edge->v1->coord[0] - f->edge->v0->coord[0] * f->edge->v1->coord[2];
-		normal[2] = f->edge->v0->coord[0] * f->edge->v1->coord[1] - f->edge->v0->coord[1] * f->edge->v1->coord[0];
+
+		face *f = m->faces[i];
+		edge *e = f->edge;
+		vertex *v;
+		
+
+		float A[3] = {  f->edge->v1->coord[0] - f->edge->v0->coord[0],
+						f->edge->v1->coord[1] - f->edge->v0->coord[1], 
+						f->edge->v1->coord[2] - f->edge->v0->coord[2] };
+		float B[3] = {  f->edge->next->next->v0->coord[0] - f->edge->next->next->v1->coord[0],
+						f->edge->next->next->v0->coord[1] - f->edge->next->next->v1->coord[1],
+						f->edge->next->next->v0->coord[2] - f->edge->next->next->v1->coord[2] };
+		normal[0] = A[1] * B[2] - A[2] * B[1];
+		normal[1] = A[2] * B[0] - A[0] * B[2];
+		normal[2] = A[0] * B[1] - A[1] * B[0];
+		float nrm = sqrt(normal[0] * normal[0] + normal[1] * normal[1] + normal[2] * normal[2]);
+		normal[0] /= nrm;
+		normal[1] /= nrm;
+		normal[2] /= nrm;
+
 
 		memcpy(glData + 36 * i, m->faces[i]->edge->v0->coord, sizeof(float) * 3);
 		memcpy(glData + 36 * i + 3, normal, sizeof(float) * 3);
@@ -120,16 +140,19 @@ void draw(struct model *m)
 }
 void subdivide(struct model *m)
 {
-	int len = m->edges.size();
+	edge **edges = m->edges.data();
+	int edge_len = m->edges.size();
+	int vert_len = m->verts.size();
+	int face_len = m->faces.size();
 	chkdsk(m);
-	for (int i = 0; i < m->verts.size(); i++)
+	for (int i = 0; i < vert_len; i++)
 	{
 		vertex *v = m->verts[i];
 		std::vector<vertex *> adjacent;
 
-		for (int j = 0; j<m->edges.size(); j++)
+		for (int j = 0; j<edge_len; j++)
 		{
-			if (m->edges[j]->v1 == v)
+			if (edges[j]->v1 == v)
 				adjacent.push_back(m->edges[j]->v0);
 		}
 		int n = adjacent.size();
@@ -153,13 +176,13 @@ void subdivide(struct model *m)
 	{
 		for (int j = 0; j < 3; j++)
 		{
-			m->edges[i]->newCoord[j] = 0.375*m->edges[i]->v0->coord[j] + 0.375*m->edges[i]->v1->coord[j]
-				+ 0.125*m->edges[i]->next->v1->coord[j] + 0.125*m->edges[i]->pair->next->v1->coord[j];
+			edges[i]->newCoord[j] = 0.375*edges[i]->v0->coord[j] + 0.375*edges[i]->v1->coord[j]
+				+ 0.125*edges[i]->next->v1->coord[j] + 0.125*edges[i]->pair->next->v1->coord[j];
 			//m->edges[i]->newCoord[j] = 0.5*m->edges[i]->v0->newCoord[j] + 0.5*m->edges[i]->v1->newCoord[j];
 		}
 	}
 //	std::copy(m->edges.begin(), m->edges.end(), oldEdges.begin());
-	for (int i = 0; i <len; i++)
+	for (int i = 0; i <edge_len; i++)
 	{
 		if (m->edges[i]->mark || m->edges[i]->pair->mark)
 			continue;
@@ -225,8 +248,8 @@ void subdivide(struct model *m)
 		m->edges.push_back(e1newpair);
 		m->verts.push_back(new1);
 	}
-	len = m->faces.size();
-	for (int i = 0; i < len; i++)
+
+	for (int i = 0; i < face_len; i++)
 	{
 		face *f = m->faces[i];
 		face *newf1 = new face();
@@ -321,15 +344,16 @@ void subdivide(struct model *m)
 		m->faces.push_back(newf3);
 	}
 	chkdsk(m);
-	len = m->verts.size();
+	vert_len = m->verts.size();
+	edge_len = m->edges.size();
 	
 	
-	for (int i = 0; i < len; i++)
+	for (int i = 0; i < vert_len; i++)
 	{
 		vertex *v = m->verts[i];
 		memcpy(v->coord, v->newCoord, sizeof(float) * 3);
 	}
-	for (int i = 0; i <m->edges.size(); i++)
+	for (int i = 0; i <edge_len; i++)
 	{
 		m->edges[i]->mark = 0;
 	}
@@ -410,7 +434,7 @@ struct model *make_model(int *cube_vertices, int *indices, int vsize, int isize)
 	}
 	find_twins(m->edges);
 	subdivide(m);
-	//subdivide(m);
+	subdivide(m);
 
 	glGenBuffers(1, &m->vbo);
 	return m;

@@ -178,14 +178,18 @@ void init()
 	for (int i = 1; i < 15; i++)
 		for (int j = 1; j < 15; j++)
 			for (int k = 1; k < 15; k++)
-				//if ((((float)rand()) / RAND_MAX) > 10*(((float)rand()) / RAND_MAX)*k)
-					//if((i-8)*(i-8)+ (j - 8)*(j - 8)+ (k - 8)*(k- 8) < 32)
-				if(k == 2)
-					cnk->set(i, j, k, 1);
-	//cnk->set(1, 1, 1, 1);
-	//cnk->set(2, 1, 1, 1);
-	//cnk->set(2, 2, 1, 1);
-	//cnk->set(1, 2, 1, 1);
+				if ((((float)rand()) / RAND_MAX) > 10*(((float)rand()) / RAND_MAX)*k)
+				//	if((i-8)*(i-8)+ (j - 8)*(j - 8)+ (k - 8)*(k- 8) < 32)
+				//if(k == 2)
+					//cnk->set(i, j, k, 1);
+	cnk->set(1, 1, 3, 1);
+	cnk->set(2, 1, 3, 1);
+	cnk->set(2, 2, 3, 1);
+	cnk->set(1, 2, 3, 1);
+	cnk->set(1, 1, 4, 1);
+
+	cnk->set(1, 1, 6, 1);
+	cnk->set(2, 1, 6, 1);
 	cnk->update();
 	init_quad();
 
@@ -219,7 +223,7 @@ void render()
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	//gluLookAt(50 + 50 * sin(time), 50 + 50 * cos(time), 10, 100 * cos(0.2*time), 100 * sin(0.2*time), 4, 0, 0, 1);
-	gluLookAt(0 + 5 * sin(time), 0 + 5 * cos(time), 5, 7, 7, 2, 0, 0, 1);
+	gluLookAt(0 + 5 * sin(time), 0 + 5 * cos(time), 5, 1, 1, 2, 0, 0, 1);
 
 	glBindFramebuffer(GL_FRAMEBUFFER,fbos[0]);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
