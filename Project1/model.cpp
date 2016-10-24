@@ -121,7 +121,7 @@ void draw(struct model *m)
 void subdivide(struct model *m)
 {
 	int len = m->edges.size();
-
+	chkdsk(m);
 	for (int i = 0; i < m->verts.size(); i++)
 	{
 		vertex *v = m->verts[i];
@@ -354,6 +354,47 @@ struct model *make_cube()
 		edge *e1 = edge_new(f, m->verts[cube_elements[3*i]], m->verts[cube_elements[3 * i + 1]]);
 		edge *e2 = edge_new(f, m->verts[cube_elements[3 * i + 1]], m->verts[cube_elements[3 * i + 2]]);
 		edge *e3 = edge_new(f, m->verts[cube_elements[3 * i + 2]], m->verts[cube_elements[3 * i]]);
+		m->edges.push_back(e1);
+		m->edges.push_back(e2);
+		m->edges.push_back(e3);
+
+		e1->next = e2;
+		e2->next = e3;
+		e3->next = e1;
+		e1->face = f;
+		e2->face = f;
+		e3->face = f;
+		f->edge = e1;
+
+	}
+	find_twins(m->edges);
+	//subdivide(m);
+	//subdivide(m);
+
+	glGenBuffers(1, &m->vbo);
+	return m;
+}
+
+struct model *make_model(int *cube_vertices, int *indices, int vsize, int isize)
+{
+
+	model *m = new model();
+	for (int i = 0; i < vsize; i++)
+	{
+		vertex *v = new vertex();
+		v->coord[0] = cube_vertices[i] & 0xff;
+		v->coord[1] = (cube_vertices[i] >> 8) & 0xff;
+		v->coord[2] = (cube_vertices[i] >> 16) & 0xff;
+		v->mark = 0;
+		m->verts.push_back(v);
+	}
+	for (int i = 0; i < isize/3; i++) {
+		face *f = new face();
+		m->faces.push_back(f);
+
+		edge *e1 = edge_new(f, m->verts[indices[3 * i]], m->verts[indices[3 * i + 1]]);
+		edge *e2 = edge_new(f, m->verts[indices[3 * i + 1]], m->verts[indices[3 * i + 2]]);
+		edge *e3 = edge_new(f, m->verts[indices[3 * i + 2]], m->verts[indices[3 * i]]);
 		m->edges.push_back(e1);
 		m->edges.push_back(e2);
 		m->edges.push_back(e3);

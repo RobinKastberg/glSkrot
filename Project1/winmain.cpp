@@ -174,16 +174,19 @@ void init()
 	load_shader_from_resource(&quadp,IDR_SHADER3, GL_FRAGMENT_SHADER);
 	load_shader_from_resource(&quadp,IDR_SHADER4, GL_VERTEX_SHADER);
 
-	/*
 	cnk = new superchunk();
-	for (int i = 0; i < 256; i++)
-		for (int j = 0; j < 256; j++)
-			for (int k = 0; k < 16; k++)
-				if ((((float)rand()) / RAND_MAX) > 10*(((float)rand()) / RAND_MAX)*k)
+	for (int i = 1; i < 15; i++)
+		for (int j = 1; j < 15; j++)
+			for (int k = 1; k < 15; k++)
+				//if ((((float)rand()) / RAND_MAX) > 10*(((float)rand()) / RAND_MAX)*k)
 					//if((i-8)*(i-8)+ (j - 8)*(j - 8)+ (k - 8)*(k- 8) < 32)
-					cnk->set(i, j, k, rand());
+				if(k == 2)
+					cnk->set(i, j, k, 1);
+	//cnk->set(1, 1, 1, 1);
+	//cnk->set(2, 1, 1, 1);
+	//cnk->set(2, 2, 1, 1);
+	//cnk->set(1, 2, 1, 1);
 	cnk->update();
-	*/
 	init_quad();
 
 	
@@ -200,7 +203,7 @@ void init()
 	NAME(GL_SHADER, quadp.frag_shader, "quad");
 	NAME(GL_FRAMEBUFFER, fbos[0], "Deferred Rendering");
 
-	cube = make_cube();
+	//cube = make_cube();
 }
 float x = 0, y = 0, z = 0;
 
@@ -216,7 +219,7 @@ void render()
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	//gluLookAt(50 + 50 * sin(time), 50 + 50 * cos(time), 10, 100 * cos(0.2*time), 100 * sin(0.2*time), 4, 0, 0, 1);
-	gluLookAt(0 + 2 * sin(0.3*time), 0 + 2 * cos(0.3*time), 2, 0, 0, 0, 0, 0, 1);
+	gluLookAt(0 + 5 * sin(time), 0 + 5 * cos(time), 5, 7, 7, 2, 0, 0, 1);
 
 	glBindFramebuffer(GL_FRAMEBUFFER,fbos[0]);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -225,8 +228,11 @@ void render()
 	glViewport(0, 0, width, height);
 
 	shader_verify(&sp);
-	//cnk->render();
-	draw(cube);
+	//glUseProgram(0);
+	glUniform1f(glGetUniformLocation(sp.program, "time"), time);
+
+	cnk->render();
+	//draw(cube);
 
 	time += 0.01;
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
