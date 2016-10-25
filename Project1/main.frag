@@ -12,7 +12,6 @@ const float density = 100;
 const float LOG2 = 1.442695;
 const vec4 fogColor = vec4(1,1,1,1);
 
-
 void main(void)
 {
 vec2 coord33 = gl_PointCoord - gl_FragCoord.xy;  //from [0,1] to [-0.5,0.5]
@@ -33,6 +32,7 @@ vec2 coord33 = gl_PointCoord - gl_FragCoord.xy;  //from [0,1] to [-0.5,0.5]
 	}
 	color_out = vec3(1,0,0);
 	color_out = mix(terrain_colours[int(pos.z)],terrain_colours[int(pos.z)+1],fract(pos.z));
+	//color_out += pnoise(pos.xyz, vec3(10,10,10));
 	//color_out.rgb = texcoord.rgb;
 	position_out = pos.xyz;
 	//color_out = position_out / 100;

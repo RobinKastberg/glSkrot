@@ -19,15 +19,15 @@ void main(){
 
 	float diff3 = 0.001;
 	/*
-	vec3 image1 = vec3(texture2D(tex, coords + vec2(diff3, 0))).rgb;
-	vec3 image2 = vec3(texture2D(tex, coords + vec2(0, diff3))).rgb;
-	vec3 image3 = vec3(texture2D(tex, coords + vec2(0, -diff3))).rgb;
-	vec3 image4 = vec3(texture2D(tex, coords + vec2(-diff3, 0))).rgb;
+	vec3 image1 = vec3(texture(tex, coords + vec2(diff3, 0))).rgb;
+	vec3 image2 = vec3(texture(tex, coords + vec2(0, diff3))).rgb;
+	vec3 image3 = vec3(texture(tex, coords + vec2(0, -diff3))).rgb;
+	vec3 image4 = vec3(texture(tex, coords + vec2(-diff3, 0))).rgb;
 	vec3 image = (image1 + image2 + image3 + image4)/4;*/
-	vec3 image = vec3(texture2D(tex, coords)).rgb;
-	vec3 normal  = vec3(texture2D(tex2, coords)).rgb;
-	vec3 position  = texture2D(tex3, coords).rgb;
-	vec4 lighting  = texture2D(tex4, coords);
+	vec3 image = vec3(texture(tex, coords)).rgb;
+	vec3 normal  = vec3(texture(tex2, coords)).rgb;
+	vec3 position  = texture(tex3, coords).rgb;
+	vec4 lighting  = texture(tex4, coords);
 
 
 
@@ -60,22 +60,34 @@ void main(){
 		//float bias = 0.005; 
 	shadowCoord.z -= 0.01;
 	//shadowCoord.z += max(0.1 * (1.0 - dot(normal, lightDir)), 0.05); 
-	visibility = texture( shadowTex, shadowCoord.xyz );
-	visibility = clamp(0.1 + visibility, 0.0, 1.0);
+	//visibility = texture( shadowTex, shadowCoord.xyz );
+
+	visibility = 0.0;
+	vec2 texelSize = 1.0 / textureSize(shadowTex, 0);
+	for(int x = -1; x <= 1; ++x)
+	{
+		for(int y = -1; y <= 1; ++y)
+		{
+			visibility += texture(shadowTex, shadowCoord.xyz + vec3(x, y, 0) * texelSize);        
+		}    
+	}
+	visibility = visibility/18.0 + 0.5;
+
+
 	color_out.rgb =  image * dot(normal, lightDir) * visibility;
 	//return;
 	vec2 diff = 0.5 / textureSize(tex3, 0);
 
-	vec3 pos1 = vec3(texture2D(tex3, coords + vec2(diff.x, 0))).rgb;
-	vec3 pos2 = vec3(texture2D(tex3, coords + vec2(0, diff.y))).rgb;
-	vec3 pos3 = vec3(texture2D(tex3, coords + vec2(0, -diff.y))).rgb;
-	vec3 pos4 = vec3(texture2D(tex3, coords + vec2(-diff.x, 0))).rgb;
+	vec3 pos1 = vec3(texture(tex3, coords + vec2(diff.x, 0))).rgb;
+	vec3 pos2 = vec3(texture(tex3, coords + vec2(0, diff.y))).rgb;
+	vec3 pos3 = vec3(texture(tex3, coords + vec2(0, -diff.y))).rgb;
+	vec3 pos4 = vec3(texture(tex3, coords + vec2(-diff.x, 0))).rgb;
 
 	vec2 diff2 = 0.5 / textureSize(tex2, 0);;
-	vec3 norm1 = vec3(texture2D(tex2, coords + vec2(diff2.x, 0))).rgb;
-	vec3 norm2 = vec3(texture2D(tex2, coords + vec2(0, diff2.y))).rgb;
-	vec3 norm3 = vec3(texture2D(tex2, coords + vec2(0, -diff2.y))).rgb;
-	vec3 norm4 = vec3(texture2D(tex2, coords + vec2(-diff2.x, 0))).rgb;
+	vec3 norm1 = vec3(texture(tex2, coords + vec2(diff2.x, 0))).rgb;
+	vec3 norm2 = vec3(texture(tex2, coords + vec2(0, diff2.y))).rgb;
+	vec3 norm3 = vec3(texture(tex2, coords + vec2(0, -diff2.y))).rgb;
+	vec3 norm4 = vec3(texture(tex2, coords + vec2(-diff2.x, 0))).rgb;
 
 	const float delta = 1;
 	if(distance(position, pos1) > delta
