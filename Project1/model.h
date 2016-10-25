@@ -37,7 +37,7 @@ struct model {
 	GLuint vbo;
 };
 struct edge *edge_new(face *f, vertex *v0, vertex *v1);
-void find_twins(struct edge **edges, int len);
+void find_twins(std::vector<edge *> edges);
 void draw(struct model *m);
 struct model *make_cube();
-struct model *make_model(int *cube_vertices, int *indices, int vsize, int isize);
+struct model *make_model(int *cube_vertices, short *indices, int vsize, int isize);

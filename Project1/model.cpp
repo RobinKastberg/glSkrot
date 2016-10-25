@@ -1,42 +1,7 @@
 #include "stdafx.h"
 
-#include "model.h"
 
-#include <memory.h>
-#include <algorithm>
-#include <map>
-GLfloat cube_vertices[] = {
-	// front
-	-1.0, -1.0,  1.0,
-	1.0, -1.0,  1.0,
-	1.0,  1.0,  1.0,
-	-1.0,  1.0,  1.0,
-	// back
-	-1.0, -1.0, -1.0,
-	1.0, -1.0, -1.0,
-	1.0,  1.0, -1.0,
-	-1.0,  1.0, -1.0,
-};
-int cube_elements[] = {
-	// front
-	0, 1, 2,
-	2, 3, 0,
-	// top
-	1, 5, 6,
-	6, 2, 1,
-	// back
-	7, 6, 5,
-	5, 4, 7,
-	// bottom
-	4, 0, 3,
-	3, 7, 4,
-	// left
-	4, 5, 1,
-	1, 0, 4,
-	// right
-	3, 2, 6,
-	6, 7, 3,
-};
+
 struct edge *edge_new(struct face *f, struct vertex *v0, struct vertex *v1)
 {
 	struct edge *e = new edge();
@@ -398,46 +363,8 @@ void subdivide(struct model *m)
 	return;
 }
 
-struct model *make_cube()
-{
-	
-	model *m = new model();
-	for (int i = 0; i < 8; i++)
-	{
-		vertex *v = new vertex();
-		memcpy(v->coord, &cube_vertices[3 * i], sizeof(float) * 3);
-		v->mark = 0;
-		m->verts.push_back(v);
-	}
-	for (int i = 0; i < 12;i++) {
-		face *f = new face();
-		m->faces.push_back(f);
 
-		edge *e1 = edge_new(f, m->verts[cube_elements[3*i]], m->verts[cube_elements[3 * i + 1]]);
-		edge *e2 = edge_new(f, m->verts[cube_elements[3 * i + 1]], m->verts[cube_elements[3 * i + 2]]);
-		edge *e3 = edge_new(f, m->verts[cube_elements[3 * i + 2]], m->verts[cube_elements[3 * i]]);
-		m->edges.push_back(e1);
-		m->edges.push_back(e2);
-		m->edges.push_back(e3);
-
-		e1->next = e2;
-		e2->next = e3;
-		e3->next = e1;
-		e1->face = f;
-		e2->face = f;
-		e3->face = f;
-		f->edge = e1;
-
-	}
-	find_twins(m->edges);
-	//subdivide(m);
-	//subdivide(m);
-
-	glGenBuffers(1, &m->vbo);
-	return m;
-}
-
-struct model *make_model(int *cube_vertices, int *indices, int vsize, int isize)
+struct model *make_model(int *cube_vertices, short *indices, int vsize, int isize)
 {
 
 	model *m = new model();

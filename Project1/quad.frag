@@ -68,7 +68,7 @@ void main(){
 	{
 		for(int y = -1; y <= 1; ++y)
 		{
-			visibility += texture(shadowTex, shadowCoord.xyz + vec3(x, y, 0) * texelSize);        
+			visibility += texture(shadowTex, shadowCoord.xyz + vec3(x* texelSize.x, y* texelSize.y, 0) );        
 		}    
 	}
 	visibility = visibility/18.0 + 0.5;

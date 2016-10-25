@@ -70,12 +70,6 @@
     <None Include="main.vert" />
     <None Include="quad.vert" />
     <None Include="quad.frag" />
-    <None Include="shader9.bin">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="shader10.bin">
-      <Filter>Resource Files</Filter>
-    </None>
     <None Include="shadow.frag" />
     <None Include="shadow.vert" />
   </ItemGroup>

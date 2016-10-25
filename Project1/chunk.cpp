@@ -26,24 +26,23 @@ void chunk::set(int x, int y, int z, GLubyte type) {
 }
 #define VERTICES CX * CY * CZ * 8
 #define INDICES  CX * CY * CZ * 12 * 3
-int find_or_add(int *vertices, int compare, int *index)
+int chunk::find_or_add(int *vertices, int compare, int *index)
 {
+	if (vertex_cache.find(compare) != vertex_cache.end())
+		return vertex_cache[compare];
 	
-	for (int i = 0; i < VERTICES; i++)
-	{
-		if (vertices[i] == compare)
-			return i;
-	}
 	int i = *index;
-	vertices[*index] = compare;
+	vertices[i] = compare;
+	vertex_cache[compare] = i;
 	(*index)++;
 	return i;
 }
 void chunk::update() {
 	changed = false;
 
-	int vertices[VERTICES];
-	int indices[INDICES];
+	int *vertices = new int[VERTICES];
+	short *indices  = new short[INDICES];
+	vertex_cache.clear();
 	int v_i = 0;
 	int i_i = 0;
 
@@ -65,7 +64,7 @@ void chunk::update() {
 					indices[i_i++] = find_or_add(vertices, byte4(x, y, z + 1, type), &v_i);
 					indices[i_i++] = find_or_add(vertices, byte4(x, y + 1, z + 1, type), &v_i);
 				}
-				if (x == 15 || blk[x + 1][y][z] != type) {
+				if (x == CX-1 || blk[x + 1][y][z] != type) {
 					indices[i_i++] = find_or_add(vertices, byte4(x + 1, y, z, type), &v_i);
 					
 					indices[i_i++] = find_or_add(vertices, byte4(x + 1, y + 1, z, type), &v_i);
@@ -93,7 +92,7 @@ void chunk::update() {
 					indices[i_i++] = find_or_add(vertices, byte4(x, y, z + 1, type), &v_i);
 					
 				}
-				if (y==15 || blk[x][y+1][z] != type) {
+				if (y==CY-1 || blk[x][y+1][z] != type) {
 					indices[i_i++] = find_or_add(vertices, byte4(x, y + 1, z, type), &v_i);
 					
 					indices[i_i++] = find_or_add(vertices, byte4(x, y + 1, z + 1, type), &v_i);
@@ -121,7 +120,7 @@ void chunk::update() {
 					indices[i_i++] = find_or_add(vertices, byte4(x + 1, y, z, type), &v_i);
 					
 				}
-				if (z == 15 || blk[x][y][z+1] != type) {
+				if (z == CZ-1 || blk[x][y][z+1] != type) {
 					indices[i_i++] = find_or_add(vertices, byte4(x, y, z + 1, type), &v_i);
 					
 					indices[i_i++] = find_or_add(vertices, byte4(x + 1, y, z + 1, type), &v_i);
@@ -146,6 +145,9 @@ void chunk::update() {
 		// DELETE M IF ALREADY THERE.
 		this->m = make_model(vertices, indices, v_i, i_i);
 	}
+
+	delete [] vertices;
+	delete [] indices;
 }
 
 void chunk::render() {

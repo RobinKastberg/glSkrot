@@ -1,12 +1,12 @@
 #pragma once
 #include "stdafx.h"
 #include "model.h"
-#define CX 16
-#define CY 16
-#define CZ 16
-#define SCX 32
-#define SCY 32
-#define SCZ 32
+#define CX 32
+#define CY 32
+#define CZ 32
+#define SCX 8
+#define SCY 8
+#define SCZ 8
 struct chunk {
 	GLubyte blk[CX][CY][CZ];
 	GLuint vbos[2];
@@ -14,6 +14,8 @@ struct chunk {
 	int elements;
 	bool changed;
 	model *m;
+	std::map< int, short > vertex_cache;
+
 	chunk();
 
 	~chunk();
@@ -21,6 +23,8 @@ struct chunk {
 	GLubyte get(int x, int y, int z) const;
 
 	void set(int x, int y, int z, GLubyte type);
+
+	int find_or_add(int * vertices, int compare, int * index);
 
 	void update();
 

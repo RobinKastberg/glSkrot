@@ -30,7 +30,7 @@ struct shader_program shadowp;
 static GLuint m_vaoID[2];
 static GLuint m_vboID[3];
 static GLuint fbos[2];
-static GLuint texs[MRTS];
+static GLuint texs[MRTS+2];
 static superchunk *cnk;
 __declspec(align(16)) static float quad[] =  {  -1.0f, -1.0f, 0.0f,
 1.0f, -1.0f, 0.0f,
@@ -224,9 +224,9 @@ void init()
 
 	glUseProgram(sp.program);
 	cnk = new superchunk();
-	for (int i = 1; i < 16; i++)
+	for (int i = 1; i < 32; i++)
 	{
-		for (int j = 1; j < 16; j++)
+		for (int j = 1; j < 32; j++)
 		{
 			cnk->set(i, j, 1, 1);
 		}
@@ -234,10 +234,11 @@ void init()
 	int x = 0;
 	int y = 0;
 	int cur = 1;
-	for (int i=0; i < 40; i++)
+	
+	for (int i=0; i < 160; i++)
 	{
-		x = 2 + rand() % 13;
-		y = 2 + rand() % 13;
+		x = 2 + rand() % 30;
+		y = 2 + rand() % 30;
 		cur = 1;
 		for (; cnk->get(x, y, cur) != 0; cur++);
 		cnk->set(x, y, cur, 1);
@@ -245,9 +246,9 @@ void init()
 		while (!fixed)
 		{
 			fixed = true;
-			for (int j = 0; j < 15; j++)
+			for (int j = 0; j < CX-1; j++)
 			{
-				for (int k = 0; k < 15; k++)
+				for (int k = 0; k < CY-1; k++)
 				{
 					if (cnk->get(j, k, cur)) {
 						if (cnk->get(j + 1, k + 1, cur) && !(cnk->get(j, k + 1, cur) || cnk->get(j + 1, k, cur)))
@@ -277,6 +278,7 @@ void init()
 		}
 		
 	}
+	
 	//cnk->set(8, 8,2, 1);
 	cnk->update();
 	init_quad();

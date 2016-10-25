@@ -22,10 +22,17 @@
 #include <tchar.h>
 #include <math.h>
 #include <assert.h>
+#include <memory.h>
 
+// C++
+#include <algorithm>
+#include <map>
 // TODO: reference additional headers your program requires here
 #include "shader.h"
 #include "chunk.h"
+#include "model.h"
+
+
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 double noise(double x, double y, double z);
 void permute();
