@@ -28,6 +28,7 @@ void chunk::set(int x, int y, int z, GLubyte type) {
 #define INDICES  CX * CY * CZ * 12 * 3
 int find_or_add(int *vertices, int compare, int *index)
 {
+	
 	for (int i = 0; i < VERTICES; i++)
 	{
 		if (vertices[i] == compare)
@@ -45,6 +46,7 @@ void chunk::update() {
 	int indices[INDICES];
 	int v_i = 0;
 	int i_i = 0;
+
 	for (int x = 1; x < CX; x++) {
 		for (int y = 1; y < CY; y++) {
 			for (int z = 1; z < CZ; z++) {
@@ -62,7 +64,7 @@ void chunk::update() {
 				GLubyte yminus = blk[x][y-1][z];
 				
 				// View from negative x
-				if (x == 0 || !xminus) {
+				if (x == 0 || xminus != type) {
 					indices[i_i++] = find_or_add(vertices, byte4(x, y, z, type), &v_i);
 					indices[i_i++] = find_or_add(vertices, byte4(x, y, z + 1, type), &v_i);
 					indices[i_i++] = find_or_add(vertices, byte4(x, y + 1, z, type), &v_i);
@@ -70,7 +72,7 @@ void chunk::update() {
 					indices[i_i++] = find_or_add(vertices, byte4(x, y, z + 1, type), &v_i);
 					indices[i_i++] = find_or_add(vertices, byte4(x, y + 1, z + 1, type), &v_i);
 				}
-				if (!xplus) {
+				if (xplus != type) {
 					indices[i_i++] = find_or_add(vertices, byte4(x + 1, y, z, type), &v_i);
 					
 					indices[i_i++] = find_or_add(vertices, byte4(x + 1, y + 1, z, type), &v_i);
@@ -84,7 +86,7 @@ void chunk::update() {
 					indices[i_i++] = find_or_add(vertices, byte4(x + 1, y, z + 1, type), &v_i);
 					
 				}
-				if (y==0 ||!yminus) {
+				if (y==0 || yminus != type) {
 					indices[i_i++] = find_or_add(vertices, byte4(x, y, z, type), &v_i);
 					
 					indices[i_i++] = find_or_add(vertices, byte4(x + 1, y, z, type), &v_i);
@@ -98,7 +100,7 @@ void chunk::update() {
 					indices[i_i++] = find_or_add(vertices, byte4(x, y, z + 1, type), &v_i);
 					
 				}
-				if (!yplus) {
+				if (yplus != type) {
 					indices[i_i++] = find_or_add(vertices, byte4(x, y + 1, z, type), &v_i);
 					
 					indices[i_i++] = find_or_add(vertices, byte4(x, y + 1, z + 1, type), &v_i);
@@ -112,7 +114,7 @@ void chunk::update() {
 					indices[i_i++] = find_or_add(vertices, byte4(x + 1, y + 1, z + 1, type), &v_i);
 					
 				}
-				if (z == 0 || !down) {
+				if (z == 0 || down != type) {
 					indices[i_i++] = find_or_add(vertices, byte4(x, y, z, type), &v_i);
 					
 					indices[i_i++] = find_or_add(vertices, byte4(x, y + 1, z, type), &v_i);
@@ -126,7 +128,7 @@ void chunk::update() {
 					indices[i_i++] = find_or_add(vertices, byte4(x + 1, y, z, type), &v_i);
 					
 				}
-				if (!up) {
+				if (up != type) {
 					indices[i_i++] = find_or_add(vertices, byte4(x, y, z + 1, type), &v_i);
 					
 					indices[i_i++] = find_or_add(vertices, byte4(x + 1, y, z + 1, type), &v_i);
@@ -140,6 +142,7 @@ void chunk::update() {
 					indices[i_i++] = find_or_add(vertices, byte4(x + 1, y + 1, z + 1, type), &v_i);
 					
 				}
+				
 			}
 		}
 	}
