@@ -129,7 +129,7 @@ void init()
 	//wglSwapIntervalEXT(1);
 	glClearColor(0.5, 0.5, 0.5, 1);
 	glEnable(GL_TEXTURE_2D);
-	//glEnable(GL_CULL_FACE);
+	glEnable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 	if (glewGetExtension("GL_KHR_debug")) {
@@ -177,7 +177,7 @@ void init()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, 1024, 1024, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, 2048, 2048, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, NULL);
 
 	glGenFramebuffers(2, fbos);
 
@@ -224,22 +224,60 @@ void init()
 
 	glUseProgram(sp.program);
 	cnk = new superchunk();
-	for (int i = 1; i < 15; i++)
-		for (int j = 1; j < 15; j++)
+	for (int i = 1; i < 16; i++)
+	{
+		for (int j = 1; j < 16; j++)
 		{
-			if (rand() % 2 == 0) {
-				cnk->set(i, j, 1, rand());
-			}
-
-			if (rand() % 3 == 0) {
-				cnk->set(i, j, 3, rand());
-			}
-
-			if (rand() % 5 == 0) {
-				cnk->set(i, j, 5, rand());
+			cnk->set(i, j, 1, 1);
+		}
+	}
+	int x = 0;
+	int y = 0;
+	int cur = 1;
+	for (int i=0; i < 40; i++)
+	{
+		x = 2 + rand() % 13;
+		y = 2 + rand() % 13;
+		cur = 1;
+		for (; cnk->get(x, y, cur) != 0; cur++);
+		cnk->set(x, y, cur, 1);
+		bool fixed = false;
+		while (!fixed)
+		{
+			fixed = true;
+			for (int j = 0; j < 15; j++)
+			{
+				for (int k = 0; k < 15; k++)
+				{
+					if (cnk->get(j, k, cur)) {
+						if (cnk->get(j + 1, k + 1, cur) && !(cnk->get(j, k + 1, cur) || cnk->get(j + 1, k, cur)))
+						{ 
+							cnk->set(j + 1, k, cur, 1);
+							fixed = false;
+						}
+						if (cnk->get(j - 1, k + 1, cur) && !(cnk->get(j - 1, k, cur) || cnk->get(j, k + 1, cur)))
+						{
+							fixed = false;
+							cnk->set(j, k + 1, cur, 1);
+						}
+						if (cnk->get(j - 1, k - 1, cur) && !(cnk->get(j, k - 1, cur) || cnk->get(j - 1, k, cur)))
+						{
+							fixed = false;
+							cnk->set(j, k - 1, cur, 1);
+						}
+						
+						if (cnk->get(j + 1, k - 1, cur) && !(cnk->get(j + 1, k, cur) || cnk->get(j, k - 1, cur)))
+						{
+							fixed = false;
+							cnk->set(j + 1, k, cur, 1);
+						}
+					}
+				}
 			}
 		}
-	//cnk->set(8, 8, 5, 1);
+		
+	}
+	//cnk->set(8, 8,2, 1);
 	cnk->update();
 	init_quad();
 
@@ -259,24 +297,23 @@ void init()
 
 	//cube = make_cube();
 }
-float x = 0, y = 0, z = 0;
 
 void light_camera() {
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glOrtho(-10, 10, -10, 10, 0, 200);
+	glOrtho(-10, 10, -10, 10, 0, 50);
 	//gluPerspective(45, 1, 0.1, 800);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	gluLookAt(10 + 10*sin(0.3*time), 10 + 10*cos(0.3*time), 100, 8,8, 0, 0, 1, 0);
+	gluLookAt(0+ 10*sin(0.3*time), 0 + 10*cos(0.3*time), 10, 8,8, 0, 0, 0, 1);
 }
 void render()
 {
 	/* SHADOW PASS */
-
+	glDisable(GL_CULL_FACE);
 	glBindFramebuffer(GL_FRAMEBUFFER, fbos[1]);
 	glCullFace(GL_FRONT);
-	glViewport(0, 0, 1024, 1024);
+	glViewport(0, 0, 2048, 2048);
 	glClear(GL_DEPTH_BUFFER_BIT);
 	
 	glUseProgram(shadowp.program);
@@ -285,7 +322,7 @@ void render()
 
 	cnk->render();
 	glCullFace(GL_BACK);
-
+	glEnable(GL_CULL_FACE);
 	/* OFF SCREEN RENDERING PASS */
 	glBindFramebuffer(GL_FRAMEBUFFER, fbos[0]);
 
@@ -293,12 +330,12 @@ void render()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	gluPerspective(90, (float)width / height, 0.01, 300);
+	gluPerspective(90, (float)width / height, 0.01, 50);
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	cameraPosition.x = 0 + 10 * sin(0.1*time);
-	cameraPosition.y = 0 + 10 * cos(0.1*time);
+	cameraPosition.x = 8 + 10 * sin(0.1*time);
+	cameraPosition.y = 8 + 10 * cos(0.1*time);
 	cameraPosition.z = 10;
 
 	
@@ -315,7 +352,7 @@ void render()
 
 	
 	glUseProgram(sp.program);
-
+	glUniform1f(glGetUniformLocation(sp.program, "time"), time);
 	glBindVertexArray(m_vaoID[0]);
 	glViewport(0, 0, width, height);
 	glUniform1i(glGetUniformLocation(sp.program, "isLight"), 0);

@@ -58,7 +58,8 @@ void main(){
 
 		float visibility = 0.7;
 		//float bias = 0.005; 
-	shadowCoord.z -= 0.001;
+	shadowCoord.z -= 0.01;
+	//shadowCoord.z += max(0.1 * (1.0 - dot(normal, lightDir)), 0.05); 
 	visibility = texture( shadowTex, shadowCoord.xyz );
 	visibility = clamp(0.1 + visibility, 0.0, 1.0);
 	color_out.rgb =  image * dot(normal, lightDir) * visibility;
@@ -86,15 +87,16 @@ void main(){
 	|| distance(normal, norm3) > delta 
 	|| distance(normal, norm4) > delta)
 	{
-		color_out.rgb = vec3(1,1,1);
+		color_out.rgb = vec3(0,0,0);
 	}
 
 
 	color_out.rgb = mix(fogColor, color_out.rgb, 1-dist);
 	color_out.rgb = mix(color_out.rgb, vec3(1,1,0), lighting.r);
+	//color_out.rgb = vec3(ivec3(15*color_out.rgb)/5);
 	//color_out.rgb = vec3(visibility);
 	//color_out.rgb = vec3(lighting);
-	//color_out.rgb = texture(shadowTex, coords).rga;
+	//color_out.rgb = texture(shadowTex, vec3, coords).rga;
 		color_out.a = 1;
 	//color_out.rgb = shadowCoord.rgb;
 	//color_out.rgb = vec3(1,1,1)*(distance(normal, norm1) + distance(normal, norm2) + distance(normal, norm3) + distance(normal, norm4));

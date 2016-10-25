@@ -140,6 +140,39 @@ void draw(struct model *m)
 	glLineWidth(5);
 	glDrawArrays(GL_TRIANGLES, 0,  3 *  m->faces.size());
 }
+void smooth(struct model *m)
+{
+	int vert_len = m->verts.size();
+	for (int i = 0; i < vert_len; i++)
+	{
+		vertex *v = m->verts[i];
+		std::vector<vertex *> adjacent;
+
+		edge *e = v->out;
+		do {
+			adjacent.push_back(e->v1);
+
+			e = e->pair->next;
+		} while (e != v->out);
+		int N = adjacent.size();
+		for (int k = 0; k < 3; k++)
+		{
+			v->newCoord[k] = v->coord[k] / (N+1);
+		}
+		for (int j = 0; j < N; j++)
+		{
+			for (int k = 0; k < 3; k++)
+			{
+				v->newCoord[k] += adjacent[j]->coord[k] / (N+1);
+			}
+		}
+	}
+	for (int i = 0; i < vert_len; i++)
+	{
+		vertex *v = m->verts[i];
+		memcpy(v->coord, v->newCoord, sizeof(float) * 3);
+	}
+}
 void subdivide(struct model *m)
 {
 	edge **edges = m->edges.data();
@@ -174,6 +207,8 @@ void subdivide(struct model *m)
 				//v->newCoord[k] = v->coord[k];
 			}
 		}
+
+
 	}
 	for (int i = 0; i < m->edges.size(); i++)
 	{
@@ -436,10 +471,14 @@ struct model *make_model(int *cube_vertices, int *indices, int vsize, int isize)
 
 	}
 	find_twins(m->edges);
+	//subdivide(m);
+	//subdivide(m);
+	smooth(m);
+	smooth(m);
 	subdivide(m);
+	smooth(m);
 	subdivide(m);
-	subdivide(m);
-	subdivide(m);
+	//subdivide(m);
 
 	glGenBuffers(1, &m->vbo);
 	return m;
