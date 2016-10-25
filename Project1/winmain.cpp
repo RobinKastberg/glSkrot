@@ -204,6 +204,7 @@ void init()
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, texs[MRTS+1], 0);
 
 	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
 	assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
 
 
