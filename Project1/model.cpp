@@ -61,34 +61,53 @@ void draw(struct model *m)
 		float *glData = new float[2 * 18 * m->faces.size()];
 		for (int i = 0; i < m->faces.size(); i++)
 		{
-			float normal[3];
+			float normal[3][3];
+			memset(normal, 0, 3 * 3 * 4);
 
 			face *f = m->faces[i];
+
+			std::vector<vertex *> adjacent;
+
 			edge *e = f->edge;
-			vertex *v;
+			for (int j = 0; j < 3; j++) {
+				edge *ee = e;
+				int facesCount = 0;
+				do {
+					volatile float N[3];
+					facesCount++;
+					f = e->face;
+					float A[3] = { f->edge->v1->coord[0] - f->edge->v0->coord[0],
+									f->edge->v1->coord[1] - f->edge->v0->coord[1],
+									f->edge->v1->coord[2] - f->edge->v0->coord[2] };
+					float B[3] = { f->edge->next->next->v0->coord[0] - f->edge->next->next->v1->coord[0],
+									f->edge->next->next->v0->coord[1] - f->edge->next->next->v1->coord[1],
+									f->edge->next->next->v0->coord[2] - f->edge->next->next->v1->coord[2] };
+					N[0] = A[1] * B[2] - A[2] * B[1];
+					N[1] = A[2] * B[0] - A[0] * B[2];
+					N[2] =A[0] * B[1] - A[1] * B[0];
+					float nrm = sqrt(N[0]*N[0] + N[1] * N[1] + N[2] * N[2]);
+					N[0] /= nrm;
+					N[1] /= nrm;
+					N[2] /= nrm;
+					normal[j][0] += N[0];
+					normal[j][1] += N[1];
+					normal[j][2] += N[2];
+					e = e->pair->next;
+				} while (e != ee);
+				e = e->next;
 
-
-			float A[3] = { f->edge->v1->coord[0] - f->edge->v0->coord[0],
-							f->edge->v1->coord[1] - f->edge->v0->coord[1],
-							f->edge->v1->coord[2] - f->edge->v0->coord[2] };
-			float B[3] = { f->edge->next->next->v0->coord[0] - f->edge->next->next->v1->coord[0],
-							f->edge->next->next->v0->coord[1] - f->edge->next->next->v1->coord[1],
-							f->edge->next->next->v0->coord[2] - f->edge->next->next->v1->coord[2] };
-			normal[0] = A[1] * B[2] - A[2] * B[1];
-			normal[1] = A[2] * B[0] - A[0] * B[2];
-			normal[2] = A[0] * B[1] - A[1] * B[0];
-			float nrm = sqrt(normal[0] * normal[0] + normal[1] * normal[1] + normal[2] * normal[2]);
-			normal[0] /= nrm;
-			normal[1] /= nrm;
-			normal[2] /= nrm;
-
+				normal[j][0] /= facesCount;
+				normal[j][1] /= facesCount;
+				normal[j][2] /= facesCount;
+			}
+		
 
 			memcpy(glData + 18 * i, m->faces[i]->edge->v0->coord, sizeof(float) * 3);
-			memcpy(glData + 18 * i + 3, normal, sizeof(float) * 3);
+			memcpy(glData + 18 * i + 3, normal[0], sizeof(float) * 3);
 			memcpy(glData + 18 * i + 6, m->faces[i]->edge->next->v0->coord, sizeof(float) * 3);
-			memcpy(glData + 18 * i + 9, normal, sizeof(float) * 3);
+			memcpy(glData + 18 * i + 9, normal[1], sizeof(float) * 3);
 			memcpy(glData + 18 * i + 12, m->faces[i]->edge->next->next->v0->coord, sizeof(float) * 3);
-			memcpy(glData + 18 * i + 15, normal, sizeof(float) * 3);
+			memcpy(glData + 18 * i + 15, normal[2], sizeof(float) * 3);
 		}
 		glBindBuffer(GL_ARRAY_BUFFER, m->vbo);
 		glBufferData(GL_ARRAY_BUFFER, 2 * 6 * 3 * m->faces.size() * sizeof(float), glData, GL_DYNAMIC_DRAW);
@@ -120,11 +139,16 @@ void smooth(struct model *m)
 			e = e->pair->next;
 		} while (e != v->out);
 		int N = adjacent.size();
+		
 		for (int k = 0; k < 3; k++)
 		{
 			v->newCoord[k] = v->coord[k] / (N+1);
+			//if (N > 6)
+			//	v->newCoord[k] = 0;
 		}
-		for (int j = 0; j < N; j++)
+		//if (N > 6)
+		//	N--;
+		for (int j = 0; j < adjacent.size(); j++)
 		{
 			for (int k = 0; k < 3; k++)
 			{
@@ -138,7 +162,7 @@ void smooth(struct model *m)
 		memcpy(v->coord, v->newCoord, sizeof(float) * 3);
 	}
 }
-void subdivide(struct model *m)
+void subdivide(struct model *m, bool loop)
 {
 	edge **edges = m->edges.data();
 	int edge_len = m->edges.size();
@@ -148,40 +172,61 @@ void subdivide(struct model *m)
 	for (int i = 0; i < vert_len; i++)
 	{
 		vertex *v = m->verts[i];
-		std::vector<vertex *> adjacent;
 
-		edge *e = v->out;
-		do {
-			adjacent.push_back(e->v1);
-
-			e = e->pair->next;
-		} while (e != v->out);
-		int n = adjacent.size();
-		float beta = n > 3 ? 3.0 / (8.0*n) : 3.0 / 16.0;
-		//float beta = 3.0 / 8.0 + (3.0 / 8.0 + 0.25*cos(2 * 3.1415926535 / n))*(3.0 / 8.0 + 0.25*cos(2 * 3.1415926535 / n));
-		for (int k = 0; k < 3; k++)
+		if (loop)
 		{
-			v->newCoord[k] = (1.0 - beta*n) * v->coord[k];
-		}
+			std::vector<vertex *> adjacent;
 
-		for (int j = 0; j < adjacent.size(); j++)
-		{
+			edge *e = v->out;
+			do {
+				adjacent.push_back(e->v1);
+
+				e = e->pair->next;
+			} while (e != v->out);
+			int n = adjacent.size();
+			float beta = n > 3 ? 3.0 / (8.0*n) : 3.0 / 16.0;
+			//float beta = 3.0 / 8.0 + (3.0 / 8.0 + 0.25*cos(2 * 3.1415926535 / n))*(3.0 / 8.0 + 0.25*cos(2 * 3.1415926535 / n));
+
 			for (int k = 0; k < 3; k++)
 			{
-				v->newCoord[k] += beta * adjacent[j]->coord[k];
-				//v->newCoord[k] = v->coord[k];
+				v->newCoord[k] = (1.0 - beta*n) * v->coord[k];
+			}
+
+			for (int j = 0; j < adjacent.size(); j++)
+			{
+				for (int k = 0; k < 3; k++)
+				{
+					v->newCoord[k] += beta * adjacent[j]->coord[k];
+					//v->newCoord[k] = v->coord[k];
+				}
+			}
+
+		} else {
+			for (int k = 0; k < 3; k++)
+			{
+				v->newCoord[k] = v->coord[k];
 			}
 		}
 
 
 	}
-	for (int i = 0; i < m->edges.size(); i++)
-	{
-		for (int j = 0; j < 3; j++)
+	if (loop) {
+		for (int i = 0; i < m->edges.size(); i++)
 		{
-			edges[i]->newCoord[j] = 0.375*edges[i]->v0->coord[j] + 0.375*edges[i]->v1->coord[j]
-				+ 0.125*edges[i]->next->v1->coord[j] + 0.125*edges[i]->pair->next->v1->coord[j];
-			//m->edges[i]->newCoord[j] = 0.5*m->edges[i]->v0->newCoord[j] + 0.5*m->edges[i]->v1->newCoord[j];
+			for (int j = 0; j < 3; j++)
+			{
+				edges[i]->newCoord[j] = 0.375*edges[i]->v0->coord[j] + 0.375*edges[i]->v1->coord[j]
+					+ 0.125*edges[i]->next->v1->coord[j] + 0.125*edges[i]->pair->next->v1->coord[j];
+			}
+		}
+	} else {
+		for (int i = 0; i < m->edges.size(); i++)
+		{
+			for (int j = 0; j < 3; j++)
+			{
+				edges[i]->newCoord[j] = 0.5*edges[i]->v0->coord[j] + 0.5*edges[i]->v1->coord[j];
+				//m->edges[i]->newCoord[j] = 0.5*m->edges[i]->v0->newCoord[j] + 0.5*m->edges[i]->v1->newCoord[j];
+			}
 		}
 	}
 //	std::copy(m->edges.begin(), m->edges.end(), oldEdges.begin());
@@ -398,13 +443,18 @@ struct model *make_model(int *cube_vertices, short *indices, int vsize, int isiz
 
 	}
 	find_twins(m->edges);
+	subdivide(m, true);
+	//smooth(m);
+	subdivide(m, true);
+	//smooth(m);
+	//smooth(m);
+	//subdivide(m , true);
+	
 	//subdivide(m);
+	//smooth(m);
+
+	//smooth(m);
 	//subdivide(m);
-	smooth(m);
-	smooth(m);
-	subdivide(m);
-	smooth(m);
-	subdivide(m);
 	//subdivide(m);
 
 	glGenBuffers(1, &m->vbo);
