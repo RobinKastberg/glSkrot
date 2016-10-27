@@ -3,7 +3,7 @@
 
 #include "stdafx.h"
 #include "Project1.h"
-
+#include "shaders.h"
 #include <windows.h>
 #include <GL/GL.h>
 #include "model.h"
@@ -113,17 +113,7 @@ void draw_quad()
 }
 HINSTANCE hInstance;
 float time = 0;
-void load_shader_from_resource(struct shader_program *p, int res, GLenum type)
-{
-	HRSRC hRes = FindResourceA(hInstance, MAKEINTRESOURCEA(res), "SHADER");
-	HGLOBAL hData = LoadResource(hInstance, hRes);
-	LPVOID frag = LockResource(hData);
-	//OutputDebugStringA((char *)frag);
-	OutputDebugStringA("WAT");
-	shader_source(p, type, (char *)frag, SizeofResource(hInstance, hRes));
-	UnlockResource(hData);
-	FreeResource(hRes);
-}
+
 void init()
 {
 	//wglSwapIntervalEXT(1);
@@ -154,32 +144,21 @@ void init()
 	// First VAO setup
 	glBindVertexArray(m_vaoID[0]);
 
-	glGenTextures(MRTS+2, texs);
-	for (int i = 0; i < MRTS; i++) {
-		glBindTexture(GL_TEXTURE_2D, texs[i]);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		//NULL means reserve texture memory, but texels are undefined
-		if(i < MRTS)
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-		else {
-			
-		}
-	}
-	glBindTexture(GL_TEXTURE_2D, texs[MRTS]);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, NULL);
+	texture(&texs[0], BUFFER_COLOR, width, height, 0);
+	texture(&texs[1], BUFFER_COLOR, width, height, 0);
+	texture(&texs[2], BUFFER_FLOAT, width, height, 0);
+	texture(&texs[3], BUFFER_COLOR, width, height, 0);
+	texture(&texs[4], BUFFER_DEPTH, width, height, 0);
 
-	glBindTexture(GL_TEXTURE_2D, texs[MRTS+1]);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, 2048, 2048, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, NULL);
+	texture(&texs[5], BUFFER_DEPTH, 2048, 2048, new GLenum[13]{
+		GL_TEXTURE_COMPARE_MODE,GL_COMPARE_REF_TO_TEXTURE,
+		GL_TEXTURE_COMPARE_FUNC,GL_LEQUAL,
+		GL_TEXTURE_MIN_FILTER,	GL_LINEAR,
+		GL_TEXTURE_MAG_FILTER,	GL_LINEAR,
+		GL_TEXTURE_WRAP_S,		GL_CLAMP_TO_EDGE,
+		GL_TEXTURE_WRAP_T,		GL_CLAMP_TO_EDGE,
+		0
+	});
 
 	glGenFramebuffers(2, fbos);
 
@@ -213,16 +192,16 @@ void init()
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	shader_init(&sp);
-	load_shader_from_resource(&sp, IDR_SHADER1, GL_FRAGMENT_SHADER);
-	load_shader_from_resource(&sp, IDR_SHADER2, GL_VERTEX_SHADER);
+	shader_source(&sp, GL_FRAGMENT_SHADER, main_frag, main_frag_len);
+	shader_source(&sp, GL_VERTEX_SHADER, main_vert, main_vert_len);
 
 	shader_init(&quadp);
-	load_shader_from_resource(&quadp,IDR_SHADER3, GL_FRAGMENT_SHADER);
-	load_shader_from_resource(&quadp,IDR_SHADER4, GL_VERTEX_SHADER);
+	shader_source(&quadp, GL_FRAGMENT_SHADER, quad_frag, quad_frag_len);
+	shader_source(&quadp, GL_VERTEX_SHADER, quad_vert, quad_vert_len);
 
 	shader_init(&shadowp);
-	load_shader_from_resource(&shadowp, IDR_SHADER5, GL_FRAGMENT_SHADER);
-	load_shader_from_resource(&shadowp, IDR_SHADER6, GL_VERTEX_SHADER);
+	shader_source(&shadowp, GL_FRAGMENT_SHADER, shadow_frag, shadow_frag_len);
+	shader_source(&shadowp, GL_VERTEX_SHADER, shadow_vert, shadow_vert_len);
 
 	glUseProgram(sp.program);
 	cnk = new superchunk();
@@ -236,52 +215,7 @@ void init()
 	int x = 0;
 	int y = 0;
 	int cur = 1;
-	/*
-	for (int i=0; i < 160; i++)
-	{
-		x = 2 + rand() % CX-2;
-		y = 2 + rand() % CY-2;
-		cur = 1;
-		for (; cnk->get(x, y, cur) != 0; cur++);
-		cnk->set(x, y, cur, 1);
-		bool fixed = false;
-		while (!fixed)
-		{
-			fixed = true;
-			for (int j = 0; j < CX-1; j++)
-			{
-				for (int k = 0; k < CY-1; k++)
-				{
-					if (cnk->get(j, k, cur)) {
-						if (cnk->get(j + 1, k + 1, cur) && !(cnk->get(j, k + 1, cur) || cnk->get(j + 1, k, cur)))
-						{ 
-							cnk->set(j + 1, k, cur, 1);
-							fixed = false;
-						}
-						if (cnk->get(j - 1, k + 1, cur) && !(cnk->get(j - 1, k, cur) || cnk->get(j, k + 1, cur)))
-						{
-							fixed = false;
-							cnk->set(j, k + 1, cur, 1);
-						}
-						if (cnk->get(j - 1, k - 1, cur) && !(cnk->get(j, k - 1, cur) || cnk->get(j - 1, k, cur)))
-						{
-							fixed = false;
-							cnk->set(j, k - 1, cur, 1);
-						}
-						
-						if (cnk->get(j + 1, k - 1, cur) && !(cnk->get(j + 1, k, cur) || cnk->get(j, k - 1, cur)))
-						{
-							fixed = false;
-							cnk->set(j + 1, k, cur, 1);
-						}
-					}
-				}
-			}
-		}
-		
-	}
-	*/
-	//cnk->set(8, 8,2, 1);
+
 	cnk->update();
 	init_quad();
 
@@ -305,11 +239,11 @@ void init()
 void light_camera() {
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glOrtho(-10, 10, -10, 10, 0, 50);
+	glOrtho(-300, 300, -300, 300, 0, 5000);
 	//gluPerspective(45, 1, 0.1, 800);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	gluLookAt(0+ 10*sin(0.3*time), 0 + 10*cos(0.3*time), 10, 8,8, 0, 0, 0, 1);
+	gluLookAt(lightPos.x, lightPos.y, lightPos.z, lookAt.x,lookAt.y, lookAt.z, 0, 0, 1);
 }
 void render()
 {
@@ -338,18 +272,18 @@ void render()
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	cameraPosition.x = 8 + 10 * sin(0.1*time);
-	cameraPosition.y = 8 + 10 * cos(0.1*time);
+	cameraPosition.x = 128 + 128 * sin(0.1*time);
+	cameraPosition.y = 128 + 128 * cos(0.1*time);
 	cameraPosition.z = 10;
 
 	
 
-	lookAt.x = 8 + 0;
-	lookAt.y = 8+ 0;
+	lookAt.x = 128;
+	lookAt.y = 128;
 	lookAt.z = 2;
-	lightPos.z = 100;
-	lightPos.x = lookAt.x;
-	lightPos.y = lookAt.y;
+	lightPos.x = 128;
+	lightPos.y = 200 * cos(time);
+	lightPos.z = 200* sin(time);
 	gluLookAt(cameraPosition.x, cameraPosition.y, cameraPosition.z, lookAt.x, lookAt.y, lookAt.z, 0, 0, 1);
 
 
@@ -370,10 +304,10 @@ void render()
 	cnk->render();
 	glUniform1i(glGetUniformLocation(sp.program, "isLight"), 1);
 
-	//glPointSize(50);
-	//glBegin(GL_POINTS);
-	//glVertex3f(lightPos.x, lightPos.y, lightPos.z);
-	//glEnd();
+	glPointSize(10);
+	glBegin(GL_POINTS);
+	glVertex3f(lightPos.x, lightPos.y, lightPos.z);
+	glEnd();
 
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -394,11 +328,10 @@ void render()
 	shader_verify(&quadp);
 	draw_quad();
 }
-int WINAPI WinMain(HINSTANCE hInstance,
-	HINSTANCE hprevinstance,
-	LPSTR lpcmdline,
-	int nshowcmd)
-{
+
+void __stdcall WinMainCRTStartup() {
+	HINSTANCE hInstance = GetModuleHandle(NULL);
+	int nshowcmd = SW_SHOWDEFAULT;
 	MSG msg = { 0 };
 	WNDCLASS wc = { 0 };
 	wc.lpfnWndProc = WndProc;
@@ -417,7 +350,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	{
 		MessageBox(NULL, L"Window Creation Failed!", L"Error!",
 			MB_ICONEXCLAMATION | MB_OK);
-		return 0;
+		return;
 	}
 	init();
 	ShowWindow(hwnd, nshowcmd);
@@ -458,7 +391,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
 		}
 		SwapBuffers(hdc);
 	}
-	return msg.wParam;
+	return;
 }
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -550,4 +483,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	}
 	return 0;
 
+}
+
+int WINAPI WinMain(HINSTANCE hInstance,
+	HINSTANCE hprevinstance,
+	LPSTR lpcmdline,
+	int nshowcmd)
+{
+	WinMainCRTStartup();
 }

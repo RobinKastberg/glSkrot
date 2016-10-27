@@ -59,11 +59,11 @@ void shader_verify(const struct shader_program *self)
 		exit(1);
 	}
 }
-bool shader_source(struct shader_program *self, GLenum type, const char *str, int size)
+bool shader_source(struct shader_program *self, GLenum type, const unsigned char * const str, int size)
 {
 	GLuint shader = glCreateShader(type);
 	int sz[1] = { size };
-	glShaderSource(shader, 1, &str, sz);
+	glShaderSource(shader, 1, (char **)&str, sz);
 	glCompileShader(shader);
 	check_compile(shader, GL_COMPILE_STATUS);
 	glAttachShader(self->program, shader);

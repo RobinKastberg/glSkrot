@@ -121,13 +121,13 @@ void main(void)
 	vec4 tmp = in_Position;
 	pos = in_Position.xyz + dxyz;
 	//tmp.xyz += 0.3*normalize(in_Normal);
-	tmp.z += 4*pnoise(0.1*pos.xxy,vec3(32,32,32));
-	tmp.z += pnoise(0.5*pos.xyy,vec3(32,32,32));
-	tmp.z += 0.3*pnoise(1000*pos.xyx,vec3(32,32,32));
-	tmp.x = (100+tmp.z)*cos(2*3.14*tmp.x/256);
-	tmp.z = (100+tmp.z)*sin(2*3.14*tmp.z/256);
-	tmp.y = 10*tmp.y/256;
-	gl_Position = gl_ModelViewProjectionMatrix*tmp;
+	pos.z += 4*pnoise(0.1*pos.xxy,vec3(11,32,32));
+	pos.z += pnoise(0.5*pos.xyy,vec3(7,32,32));
+	pos.z += 0.3*pnoise(1000*pos.xyx,vec3(32,3,32));
+	//pos.x = (50-pos.z)*cos(2*3.14*pos.x/256);
+	//pos.z = (50-pos.z)*sin(2*3.14*pos.x/256);
+	//pos.y = 50*pos.y/256;
+	gl_Position = gl_ModelViewProjectionMatrix*vec4(pos,1);
 	
 
 

@@ -48,7 +48,7 @@ void main(){
     vec3 vHalfVector = normalize(reflect(cameraPosition - lightPos, normal));
     
 	float dist = clamp(distance(cameraPosition, position)/300,0,1);
-	float lightDist = clamp(distance(cameraPosition, lightPos)/300,0,1);
+	float lightDist = clamp(distance(cameraPosition, lightPos)/100000,0,1);
 	fogColor = clamp(vec3(0.5,0.5,0.5)*(1 - lightDist), 0, 1);
 
 
@@ -71,10 +71,10 @@ void main(){
 			visibility += texture(shadowTex, shadowCoord.xyz + vec3(x* texelSize.x, y* texelSize.y, 0) );        
 		}    
 	}
-	visibility = visibility/18.0 + 0.5;
+	visibility = visibility/18.0 + 0.7;
 
 
-	color_out.rgb =  image * dot(normal, lightDir) * visibility;
+	color_out.rgb =  image * (0.3 + clamp(dot(normal, -lightDir), 0, 1)) * visibility;
 	//return;
 	vec2 diff = 0.5 / textureSize(tex3, 0);
 
@@ -104,7 +104,7 @@ void main(){
 
 
 	color_out.rgb = mix(fogColor, color_out.rgb, 1-dist);
-	color_out.rgb = mix(color_out.rgb, vec3(1,1,0), lighting.r);
+	//color_out.rgb = mix(color_out.rgb, vec3(1,1,0), lighting.r);
 	//color_out.rgb = vec3(ivec3(15*color_out.rgb)/5);
 	//color_out.rgb = vec3(visibility);
 	//color_out.rgb = vec3(lighting);
