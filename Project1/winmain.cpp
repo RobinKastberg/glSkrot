@@ -176,6 +176,8 @@ void init()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, 2048, 2048, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, NULL);
 
@@ -224,9 +226,9 @@ void init()
 
 	glUseProgram(sp.program);
 	cnk = new superchunk();
-	for (int i = 1; i < 32; i++)
+	for (int i = 1; i < 16; i++)
 	{
-		for (int j = 1; j < 32; j++)
+		for (int j = 1; j < 16; j++)
 		{
 			cnk->set(i, j, 1, 1);
 		}
@@ -237,8 +239,8 @@ void init()
 	/*
 	for (int i=0; i < 160; i++)
 	{
-		x = 2 + rand() % 30;
-		y = 2 + rand() % 30;
+		x = 2 + rand() % CX-2;
+		y = 2 + rand() % CY-2;
 		cur = 1;
 		for (; cnk->get(x, y, cur) != 0; cur++);
 		cnk->set(x, y, cur, 1);
@@ -318,7 +320,7 @@ void render()
 	glViewport(0, 0, 2048, 2048);
 	glClear(GL_DEPTH_BUFFER_BIT);
 	
-	glUseProgram(shadowp.program);
+	glUseProgram(sp.program);
 	light_camera();
 	glBindVertexArray(m_vaoID[0]);
 

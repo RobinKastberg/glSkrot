@@ -172,8 +172,6 @@
     <None Include="main.vert" />
     <None Include="quad.frag" />
     <None Include="quad.vert" />
-    <None Include="shader10.bin" />
-    <None Include="shader9.bin" />
     <None Include="shadow.frag" />
     <None Include="shadow.vert" />
   </ItemGroup>
