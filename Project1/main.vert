@@ -119,7 +119,9 @@ void main(void)
 {
 	vec4 tmp = vec4(in_Position.xyz, 1.0);
 	//tmp.xyz += 0.3*normalize(in_Normal);
-	tmp.z += 0.40*turbulence(tmp.xyz);
+	tmp.z += 4*pnoise(0.1*tmp.xyz,vec3(32,32,32));
+	tmp.z += pnoise(0.5*tmp.xyz,vec3(32,32,32));
+	tmp.z += 0.3*pnoise(1000*tmp.xyz,vec3(32,32,32));
 	gl_Position = gl_ModelViewProjectionMatrix*tmp;
 	pos = tmp;
 	normal = gl_NormalMatrix * in_Normal;

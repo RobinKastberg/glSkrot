@@ -234,7 +234,7 @@ void init()
 	int x = 0;
 	int y = 0;
 	int cur = 1;
-	
+	/*
 	for (int i=0; i < 160; i++)
 	{
 		x = 2 + rand() % 30;
@@ -278,7 +278,7 @@ void init()
 		}
 		
 	}
-	
+	*/
 	//cnk->set(8, 8,2, 1);
 	cnk->update();
 	init_quad();

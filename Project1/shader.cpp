@@ -29,6 +29,21 @@ static bool check_compile(GLuint shader, GLenum type)
 		//We don't need the shader anymore.
 		glDeleteShader(shader);
 	}
+	else {
+
+		if (type == GL_LINK_STATUS && GLEW_VERSION_4_1) {
+			glGetProgramiv(shader, GL_PROGRAM_BINARY_LENGTH, &status);
+			char *infoLog = (char *)malloc(status);
+			GLenum bin;
+			glGetProgramBinary(shader, status, &status, &bin, infoLog);
+			FILE *f;
+			volatile int err = fopen_s(&f, "shader.bin", "wb");
+			fwrite(infoLog, 1, status, f);
+			fclose(f);
+			free(infoLog);
+		}
+		
+	}
 	return false;
 }
 void shader_verify(const struct shader_program *self)
