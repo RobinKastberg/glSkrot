@@ -2,11 +2,7 @@
 
 
 extern struct shader_program sp;
-extern struct xyz {
-	float x;
-	float y;
-	float z;
-} cameraPosition, lookAt;
+extern struct xyz cameraPosition, lookAt;
 
 superchunk::superchunk() {
 	memset(c, 0, sizeof c);
@@ -58,12 +54,23 @@ void superchunk::render() {
 		(lookAt.y - cameraPosition.y)*(lookAt.y - cameraPosition.y));
 	fudgedCamera.x -= CX * (lookAt.x - cameraPosition.x) / len;
 	fudgedCamera.y -= CY * (lookAt.y - cameraPosition.y) / len;
+
+	if (glewGetExtension("GL_NV_vertex_buffer_unified_memory"))
+	{
+		glEnableClientState(GL_VERTEX_ATTRIB_ARRAY_UNIFIED_NV);
+	}
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 24, 0);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 24, (void *)12);
+	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(1);
+
+
 	for (int x = 0; x < SCX; x++)
 		for (int y = 0; y < SCY; y++)
 			for (int z = 0; z < SCZ; z++)
 				if (c[x][y][z]
 					&& (x* CX - cameraPosition.x)* (x* CX - cameraPosition.x)
-					  + (y*CY - cameraPosition.y)* (y*CY - cameraPosition.y) < 300*300
+					  + (y*CY - cameraPosition.y)* (y*CY - cameraPosition.y) < 50*50
 					&& ((x * CX - fudgedCamera.x)* (lookAt.x - fudgedCamera.x) + 
 					(y * CY - fudgedCamera.y)* (lookAt.y - fudgedCamera.y)) > 0) {
 					//glm::translate(glm::mat4(1), glm::vec3(x * CX, y * CY, z * CZ));
@@ -71,8 +78,14 @@ void superchunk::render() {
 					glVertexAttrib3f(2, x * CX, y * CY, z * CZ);
 					glTranslatef(x * CX, y * CY, z * CZ);
 					c[x][y][z]->render();
+
 					glPopMatrix();
 				}
+
+	if (glewGetExtension("GL_NV_vertex_buffer_unified_memory"))
+	{
+		glDisableClientState(GL_VERTEX_ATTRIB_ARRAY_UNIFIED_NV);
+	}
 }
 
 void superchunk::update() {

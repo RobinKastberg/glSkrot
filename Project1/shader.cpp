@@ -25,6 +25,7 @@ static bool check_compile(GLuint shader, GLenum type)
 		char *infoLog = (char *)malloc(status);
 		getInfo(shader, status, &status, infoLog);
 		OutputDebugStringA(infoLog);
+		exit(1);
 		free(infoLog);
 		//We don't need the shader anymore.
 		glDeleteShader(shader);

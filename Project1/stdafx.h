@@ -36,3 +36,9 @@
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 double noise(double x, double y, double z);
 void permute();
+
+struct xyz {
+	float x;
+	float y;
+	float z;
+};

@@ -35,6 +35,8 @@ struct model {
 	
 	int up_to_date = 0;
 	GLuint vbo;
+	GLuint64 vbo_addr = 0;
+	int vbo_size = 0;
 };
 struct edge *edge_new(face *f, vertex *v0, vertex *v1);
 void find_twins(std::vector<edge *> edges);

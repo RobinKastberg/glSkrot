@@ -109,19 +109,21 @@ void draw(struct model *m)
 			memcpy(glData + 18 * i + 12, m->faces[i]->edge->next->next->v0->coord, sizeof(float) * 3);
 			memcpy(glData + 18 * i + 15, normal[2], sizeof(float) * 3);
 		}
+		m->vbo_size = 2 * 6 * 3 * m->faces.size() * sizeof(float);
 		glBindBuffer(GL_ARRAY_BUFFER, m->vbo);
-		glBufferData(GL_ARRAY_BUFFER, 2 * 6 * 3 * m->faces.size() * sizeof(float), glData, GL_DYNAMIC_DRAW);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 24, 0);
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 24, (void *)12);
-		glEnableVertexAttribArray(0);
-		glEnableVertexAttribArray(1);
+		glBufferData(GL_ARRAY_BUFFER, 2 * 6 * 3 * m->faces.size() * sizeof(float), glData, GL_STATIC_DRAW);
+		if (glewGetExtension("GL_NV_vertex_buffer_unified_memory")) {
+			glGetBufferParameterui64vNV(GL_ARRAY_BUFFER, GL_BUFFER_GPU_ADDRESS_NV, &m->vbo_addr);
+			glMakeBufferResidentNV(GL_ARRAY_BUFFER, GL_READ_ONLY);
+			
+		}	
 	}
-	glBindBuffer(GL_ARRAY_BUFFER, m->vbo);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 24, 0);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 24, (void *)12);
-	glEnableVertexAttribArray(0);
-	glEnableVertexAttribArray(1);
-	glLineWidth(5);
+	if (glewGetExtension("GL_NV_vertex_buffer_unified_memory")) {
+		glBufferAddressRangeNV(GL_VERTEX_ATTRIB_ARRAY_ADDRESS_NV, 0, m->vbo_addr, m->vbo_size);
+		glBufferAddressRangeNV(GL_VERTEX_ATTRIB_ARRAY_ADDRESS_NV, 1, m->vbo_addr, m->vbo_size);
+	} else {
+		glBindBuffer(GL_ARRAY_BUFFER, m->vbo);
+	}
 	glDrawArrays(GL_TRIANGLES, 0,  3 *  m->faces.size());
 }
 void smooth(struct model *m)
@@ -445,12 +447,12 @@ struct model *make_model(int *cube_vertices, short *indices, int vsize, int isiz
 	find_twins(m->edges);
 	subdivide(m, true);
 	//smooth(m);
-	subdivide(m, true);
+	//subdivide(m, true);
 	//smooth(m);
 	//smooth(m);
 	//subdivide(m , true);
 	
-	//subdivide(m);
+	//subdivide(m, true);
 	//smooth(m);
 
 	//smooth(m);

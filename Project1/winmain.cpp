@@ -19,11 +19,8 @@ static HWND hwnd;
 static int width;
 static int height;
 static int cameraLoc, tex1Loc, tex2Loc, tex3Loc, tex4Loc, shadowLoc, lightLoc;
-struct xyz {
-	float x;
-	float y;
-	float z;
-} cameraPosition, lookAt, lightPos;
+
+struct xyz cameraPosition, lookAt, lightPos;
 struct shader_program sp;
 struct shader_program quadp;
 struct shader_program shadowp;
@@ -109,7 +106,6 @@ void draw_quad()
 {
 	glBindVertexArray(m_vaoID[1]);
 	glDrawArrays(GL_QUADS, 0, 4);
-
 }
 HINSTANCE hInstance;
 float time = 0;
@@ -226,9 +222,9 @@ void init()
 
 	glUseProgram(sp.program);
 	cnk = new superchunk();
-	for (int i = 1; i < 16; i++)
+	for (int i = 1; i < 256; i++)
 	{
-		for (int j = 1; j < 16; j++)
+		for (int j = 1; j < 256; j++)
 		{
 			cnk->set(i, j, 1, 1);
 		}
@@ -320,7 +316,7 @@ void render()
 	glViewport(0, 0, 2048, 2048);
 	glClear(GL_DEPTH_BUFFER_BIT);
 	
-	glUseProgram(sp.program);
+	glUseProgram(shadowp.program);
 	light_camera();
 	glBindVertexArray(m_vaoID[0]);
 
@@ -334,23 +330,23 @@ void render()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	gluPerspective(90, (float)width / height, 0.01, 50);
+	gluPerspective(90, (float)width / height, 0.01, 500);
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	cameraPosition.x = 8 + 10 * sin(0.1*time);
-	cameraPosition.y = 8 + 10 * cos(0.1*time);
+	cameraPosition.x = 128 + 128 * sin(time);
+	cameraPosition.y = 128 + 128 * cos(time);
 	cameraPosition.z = 10;
 
 	
 
-	lookAt.x = 8 + 0;
-	lookAt.y = 8+ 0;
+	lookAt.x = 128;
+	lookAt.y = 128;
 	lookAt.z = 2;
 	lightPos.z = 100;
 	lightPos.x = lookAt.x;
 	lightPos.y = lookAt.y;
-	gluLookAt(cameraPosition.x, cameraPosition.y, cameraPosition.z, lookAt.x, lookAt.y, lookAt.z, 0, 0, 1);
+	gluLookAt(128, 128, 128, lookAt.x, lookAt.y, lookAt.z, 0, 1, 0);
 
 
 
@@ -360,8 +356,8 @@ void render()
 	glBindVertexArray(m_vaoID[0]);
 	glViewport(0, 0, width, height);
 	glUniform1i(glGetUniformLocation(sp.program, "isLight"), 0);
-	float clearValue[] = { 0.0, 0.0, 0.0, 0.0 };
-	glClearBufferfv(GL_COLOR, 3, clearValue);
+	//float clearValue[] = { 0.0, 0.0, 0.0, 0.0 };
+	//glClearBufferfv(GL_COLOR, 3, clearValue);
 
 	shader_verify(&sp);
 	//glUseProgram(0);
