@@ -2,8 +2,9 @@
 
 layout(location = 0) in vec4 in_Position;
 layout(location = 1) in vec3 in_Normal;
+layout(location = 2) in vec3 dxyz;
 
-out vec4 pos;
+out vec3 pos;
 out vec3 normal;
 
 uniform float time;
@@ -117,13 +118,19 @@ float turbulence( vec3 p ) {
 
 void main(void)
 {
-	vec4 tmp = vec4(in_Position.xyz, 1.0);
+	vec4 tmp = in_Position;
+	pos = in_Position.xyz + dxyz;
 	//tmp.xyz += 0.3*normalize(in_Normal);
-	tmp.z += 4*pnoise(0.1*tmp.xyz,vec3(32,32,32));
-	tmp.z += pnoise(0.5*tmp.xyz,vec3(32,32,32));
-	tmp.z += 0.3*pnoise(1000*tmp.xyz,vec3(32,32,32));
+	tmp.z += 4*pnoise(0.1*pos.xxy,vec3(32,32,32));
+	tmp.z += pnoise(0.5*pos.xyy,vec3(32,32,32));
+	tmp.z += 0.3*pnoise(1000*pos.xyx,vec3(32,32,32));
+	tmp.x = (100+tmp.z)*cos(2*3.14*tmp.x/256);
+	tmp.z = (100+tmp.z)*sin(2*3.14*tmp.z/256);
+	tmp.y = 10*tmp.y/256;
 	gl_Position = gl_ModelViewProjectionMatrix*tmp;
-	pos = tmp;
+	
+
+
 	normal = gl_NormalMatrix * in_Normal;
 }
 

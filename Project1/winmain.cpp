@@ -226,9 +226,9 @@ void init()
 
 	glUseProgram(sp.program);
 	cnk = new superchunk();
-	for (int i = 1; i < 16; i++)
+	for (int i = 1; i < 256; i++)
 	{
-		for (int j = 1; j < 16; j++)
+		for (int j = 1; j < 256; j++)
 		{
 			cnk->set(i, j, 1, 1);
 		}
@@ -334,7 +334,7 @@ void render()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	gluPerspective(90, (float)width / height, 0.01, 50);
+	gluPerspective(90, (float)width / height, 0.01, 500);
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
