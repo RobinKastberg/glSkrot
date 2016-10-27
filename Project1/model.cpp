@@ -109,15 +109,40 @@ void draw(struct model *m)
 			memcpy(glData + 18 * i + 12, m->faces[i]->edge->next->next->v0->coord, sizeof(float) * 3);
 			memcpy(glData + 18 * i + 15, normal[2], sizeof(float) * 3);
 		}
-		m->vbo_size = 2 * 6 * 3 * m->faces.size() * sizeof(float);
+		
+
 		glBindBuffer(GL_ARRAY_BUFFER, m->vbo);
-		glBufferData(GL_ARRAY_BUFFER, 2 * 6 * 3 * m->faces.size() * sizeof(float), glData, GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, 2 * 6 * 3 * m->faces.size() * sizeof(float), glData, GL_DYNAMIC_DRAW);
 		if (glewGetExtension("GL_NV_vertex_buffer_unified_memory")) {
+			m->vbo_size = 2 * 6 * 3 * m->faces.size() * sizeof(float);
 			glGetBufferParameterui64vNV(GL_ARRAY_BUFFER, GL_BUFFER_GPU_ADDRESS_NV, &m->vbo_addr);
 			glMakeBufferResidentNV(GL_ARRAY_BUFFER, GL_READ_ONLY);
-			
-		}	
+
+		} else {
+			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 24, 0);
+			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 24, (void *)12);
+			glEnableVertexAttribArray(0);
+			glEnableVertexAttribArray(1);
+		}
+		m->face_count = m->faces.size();
+		for (int i = 0; i < m->faces.size();i++)
+		{
+			delete m->faces[i];
+		}
+		for (int i = 0; i < m->edges.size(); i++)
+		{
+			delete m->edges[i];
+		}
+		for (int i = 0; i < m->verts.size(); i++)
+		{
+			delete m->verts[i];
+		}
+		m->faces.clear();
+		m->verts.clear();
+		m->edges.clear();
 	}
+
+
 	if (glewGetExtension("GL_NV_vertex_buffer_unified_memory")) {
 		glBufferAddressRangeNV(GL_VERTEX_ATTRIB_ARRAY_ADDRESS_NV, 0, m->vbo_addr, m->vbo_size);
 		glBufferAddressRangeNV(GL_VERTEX_ATTRIB_ARRAY_ADDRESS_NV, 1, m->vbo_addr, m->vbo_size);
@@ -445,7 +470,7 @@ struct model *make_model(int *cube_vertices, short *indices, int vsize, int isiz
 
 	}
 	find_twins(m->edges);
-	subdivide(m, true);
+	//subdivide(m, true);
 	//smooth(m);
 	//subdivide(m, true);
 	//smooth(m);

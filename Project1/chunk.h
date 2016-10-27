@@ -1,9 +1,9 @@
 #pragma once
 #include "stdafx.h"
 #include "model.h"
-#define CX 32
-#define CY 32
-#define CZ 32
+#define CX 64
+#define CY 64
+#define CZ 64
 #define SCX 8
 #define SCY 8
 #define SCZ 8

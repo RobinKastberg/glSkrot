@@ -232,8 +232,8 @@ void init()
 	int x = 0;
 	int y = 0;
 	int cur = 1;
-	
-	for (int i=0; i < 16; i++)
+	/*
+	for (int i=0; i < 160; i++)
 	{
 		x = 2 + rand() % CX-2;
 		y = 2 + rand() % CY-2;
@@ -276,7 +276,7 @@ void init()
 		}
 		
 	}
-	
+	*/
 	//cnk->set(8, 8,2, 1);
 	cnk->update();
 	init_quad();

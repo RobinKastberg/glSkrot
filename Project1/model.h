@@ -34,6 +34,7 @@ struct model {
 	std::vector<edge*>   edges;
 	
 	int up_to_date = 0;
+	int face_count;
 	GLuint vbo;
 	GLuint64 vbo_addr = 0;
 	int vbo_size = 0;
