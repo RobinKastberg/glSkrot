@@ -19,11 +19,8 @@ static HWND hwnd;
 static int width;
 static int height;
 static int cameraLoc, tex1Loc, tex2Loc, tex3Loc, tex4Loc, shadowLoc, lightLoc;
-struct xyz {
-	float x;
-	float y;
-	float z;
-} cameraPosition, lookAt, lightPos;
+
+struct xyz cameraPosition, lookAt, lightPos;
 struct shader_program sp;
 struct shader_program quadp;
 struct shader_program shadowp;
@@ -109,7 +106,6 @@ void draw_quad()
 {
 	glBindVertexArray(m_vaoID[1]);
 	glDrawArrays(GL_QUADS, 0, 4);
-
 }
 HINSTANCE hInstance;
 float time = 0;
@@ -254,7 +250,7 @@ void render()
 	glViewport(0, 0, 2048, 2048);
 	glClear(GL_DEPTH_BUFFER_BIT);
 	
-	glUseProgram(sp.program);
+	glUseProgram(shadowp.program);
 	light_camera();
 	glBindVertexArray(m_vaoID[0]);
 
@@ -294,8 +290,8 @@ void render()
 	glBindVertexArray(m_vaoID[0]);
 	glViewport(0, 0, width, height);
 	glUniform1i(glGetUniformLocation(sp.program, "isLight"), 0);
-	float clearValue[] = { 0.0, 0.0, 0.0, 0.0 };
-	glClearBufferfv(GL_COLOR, 3, clearValue);
+	//float clearValue[] = { 0.0, 0.0, 0.0, 0.0 };
+	//glClearBufferfv(GL_COLOR, 3, clearValue);
 
 	shader_verify(&sp);
 	//glUseProgram(0);
