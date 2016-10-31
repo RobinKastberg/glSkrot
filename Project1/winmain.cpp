@@ -60,7 +60,7 @@ void texture_setup()
 }
 int ticktick = 1;
 void tick() {
-	cnk->set(8, 8, ticktick++, 1);
+	//cnk->set(8, 8, ticktick++, 1);
 }
 float thetax = 0;
 float thetay = 3.14159/4;
@@ -537,10 +537,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				mouse_move(wnd_x, wnd_y);
 				SetCursorPos(g_OrigCursorPos.x, g_OrigCursorPos.y);
 			}
-		}
-		{
+		} else {
 			POINT pt;
 			GetCursorPos(&pt);
+			ScreenToClient(hWnd, &pt);
 			struct mat4 inverseView;
 			struct mat4 inverseProjection;
 			mat4_inverse((float *)&globals.viewMatrix, (float *)&inverseView);
@@ -553,14 +553,31 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			printf("%f %f\n", (float)pt.x, (float)pt.y);
 			printf("%f %f\n", (float)2 * pt.x / width - 1, 1 - (float)2 * pt.y / height);
 			printf("%f %f %f\n", viewRay.x, viewRay.y, viewRay.z);
-			float coeff = (-globals.cameraPosition.z) / viewRay.z;
+			float coeff = (1-globals.cameraPosition.z) / viewRay.z;
 			float x = globals.cameraPosition.x + coeff*viewRay.x;
 			float y = globals.cameraPosition.y + coeff*viewRay.y;
-			x = max(min(x, 15), 1);
-			y = max(min(y, 15), 1);
-			printf("%d %d", (int)floor(x), (int)floor(y));
-			cnk->set(floor(x), floor(y), 2, 1);
+
+	
 			printf("%f %f\n", x, y);
+			int minx;
+			int miny;
+			float dist = FLT_MAX;
+			for (int i = 0; i < 16; i++)
+			{
+				for (int j = 0; j < 16; j++)
+				{
+					float dist2 = sqrtf((i - x)*(i - x) + (j - y)*(j - y));
+					if (dist2 < dist)
+					{
+						minx = i;
+						miny = j;
+					}
+				}
+			}
+			if (minx > 1 && minx < 15 && miny > 1 && miny < 15 && !cnk->get(minx, miny, 2))
+				cnk->set(minx, miny, 2, 1);
+
+			printf("%d %d\n", minx, miny);
 			printf("===\n");
 			return 0;
 		}

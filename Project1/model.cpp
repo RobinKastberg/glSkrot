@@ -113,7 +113,7 @@ void draw(struct model *m)
 		{
 			float normal[3][3];
 			memset(normal, 0, 3 * 3 * 4);
-
+#ifdef NORMALS
 			face *f = m->faces[i];
 
 			std::vector<vertex *> adjacent;
@@ -151,7 +151,7 @@ void draw(struct model *m)
 				normal[j][2] /= facesCount;
 			}
 		
-
+#endif NORMALS
 			memcpy(glData + 18 * i, m->faces[i]->edge->v0->coord, sizeof(float) * 3);
 			memcpy(glData + 18 * i + 3, normal[0], sizeof(float) * 3);
 			memcpy(glData + 18 * i + 6, m->faces[i]->edge->next->v0->coord, sizeof(float) * 3);
