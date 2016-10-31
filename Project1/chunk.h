@@ -7,6 +7,8 @@
 #define SCX 8
 #define SCY 8
 #define SCZ 8
+
+
 struct chunk {
 	GLubyte blk[CX][CY][CZ];
 	GLuint vbos[2];
@@ -14,7 +16,7 @@ struct chunk {
 	int elements;
 	bool changed;
 	model *m;
-	std::map< int, short > vertex_cache;
+	struct _hash vertex_cache;
 
 	chunk();
 

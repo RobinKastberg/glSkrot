@@ -18,14 +18,15 @@ static HGLRC hglrc;
 static HWND hwnd;
 static int width;
 static int height;
-static int cameraLoc, tex1Loc, tex2Loc, tex3Loc, tex4Loc, shadowLoc, lightLoc;
-
-struct xyz cameraPosition, lookAt, lightPos;
+static int cameraLoc, tex1Loc, tex2Loc, tex3Loc, tex4Loc, shadow2Loc, shadowLoc, lightLoc;
+struct global globals;
 struct shader_program sp;
 struct shader_program quadp;
 struct shader_program shadowp;
+struct shader_program blurp;
 static GLuint m_vaoID[2];
 static GLuint m_vboID[3];
+static GLuint uboId;
 static GLuint fbos[2];
 static GLuint texs[MRTS+2];
 static superchunk *cnk;
@@ -39,18 +40,39 @@ __declspec(align(16)) static float quad[] =  {  -1.0f, -1.0f, 0.0f,
 1.0f, 1.0f,
 0.0f, 1.0f
 };
+void texture_setup()
+{
+	texture(&texs[0], BUFFER_FLOAT, width, height, 0);
+	texture(&texs[1], BUFFER_COLOR, width, height, 0);
+	texture(&texs[2], BUFFER_FLOAT, width, height, 0);
+	texture(&texs[3], BUFFER_COLOR, width, height, 0);
+	texture(&texs[4], BUFFER_DEPTH, width, height, 0);
 
+	texture(&texs[5], BUFFER_DEPTH, 2048, 2048, new GLenum[13]{
+		GL_TEXTURE_COMPARE_MODE,GL_COMPARE_REF_TO_TEXTURE,
+		GL_TEXTURE_COMPARE_FUNC,GL_LEQUAL,
+		GL_TEXTURE_MIN_FILTER,	GL_LINEAR,
+		GL_TEXTURE_MAG_FILTER,	GL_LINEAR,
+		GL_TEXTURE_WRAP_S,		GL_CLAMP_TO_EDGE,
+		GL_TEXTURE_WRAP_T,		GL_CLAMP_TO_EDGE,
+		0
+	});
+}
+int ticktick = 1;
 void tick() {
-	for (int i = 0; i < 510; i++) {
-		for (int j = 0; j < 510; j++) {
-			for (int k = 1; k < 32; k++) {
-				if (cnk->get(i, j, k) && !cnk->get(i, j, k - 1)) {
-					cnk->set(i, j, k - 1, cnk->get(i, j, k));
-					cnk->set(i, j, k, 0);
-				}
-			}
-		}
-	}
+	cnk->set(8, 8, ticktick++, 1);
+}
+float thetax = 0;
+float thetay = 3.14159/4;
+float radius = 8.0;
+void mouse_move(int dx, int dy)
+{
+	thetax += ((float)dx)/400.0;
+	thetay -= ((float)dy)/400.0;
+	thetay = max(min(thetay, 3.14/2), -3.14/2);
+	globals.cameraPosition.x = radius * cos(thetax)*sin(thetay) + globals.lookAt.x;
+	globals.cameraPosition.y = radius * sin(thetax)*sin(thetay) + globals.lookAt.y;
+	globals.cameraPosition.z = radius * cos(thetay) + globals.lookAt.z;
 }
 void APIENTRY openglCallbackFunction(GLenum source,
 	GLenum type,
@@ -101,6 +123,7 @@ void init_quad()
 	tex3Loc = glGetUniformLocation(quadp.program, "tex3");
 	tex4Loc = glGetUniformLocation(quadp.program, "tex4");
 	shadowLoc = glGetUniformLocation(quadp.program, "shadowTex");
+	shadow2Loc = glGetUniformLocation(quadp.program, "tex5");
 }
 void draw_quad()
 {
@@ -109,14 +132,16 @@ void draw_quad()
 }
 HINSTANCE hInstance;
 float time = 0;
-
+struct pprocess blur;
+struct pprocess blur2;
 void init()
 {
 	//wglSwapIntervalEXT(1);
-	glClearColor(0.5, 0.5, 0.5, 1);
+	glClearColor(0, 0, 0, 0);
 	glEnable(GL_TEXTURE_2D);
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_FRAMEBUFFER_SRGB);
 	glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 	if (glewGetExtension("GL_KHR_debug")) {
 		glDebugMessageCallback(openglCallbackFunction, nullptr);
@@ -139,22 +164,9 @@ void init()
 	glGenBuffers(2, &m_vboID[0]);
 	// First VAO setup
 	glBindVertexArray(m_vaoID[0]);
-
-	texture(&texs[0], BUFFER_COLOR, width, height, 0);
-	texture(&texs[1], BUFFER_COLOR, width, height, 0);
-	texture(&texs[2], BUFFER_FLOAT, width, height, 0);
-	texture(&texs[3], BUFFER_COLOR, width, height, 0);
-	texture(&texs[4], BUFFER_DEPTH, width, height, 0);
-
-	texture(&texs[5], BUFFER_DEPTH, 2048, 2048, new GLenum[13]{
-		GL_TEXTURE_COMPARE_MODE,GL_COMPARE_REF_TO_TEXTURE,
-		GL_TEXTURE_COMPARE_FUNC,GL_LEQUAL,
-		GL_TEXTURE_MIN_FILTER,	GL_LINEAR,
-		GL_TEXTURE_MAG_FILTER,	GL_LINEAR,
-		GL_TEXTURE_WRAP_S,		GL_CLAMP_TO_EDGE,
-		GL_TEXTURE_WRAP_T,		GL_CLAMP_TO_EDGE,
-		0
-	});
+	glGenTextures(6, texs);
+	texture_setup();
+	
 
 	glGenFramebuffers(2, fbos);
 
@@ -171,7 +183,7 @@ void init()
 	}
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, texs[MRTS], 0);
 
-	glDrawBuffers(MRTS-1, DrawBuffers);
+	glDrawBuffers(MRTS, DrawBuffers);
 	assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
 
 
@@ -199,11 +211,15 @@ void init()
 	shader_source(&shadowp, GL_FRAGMENT_SHADER, shadow_frag, shadow_frag_len);
 	shader_source(&shadowp, GL_VERTEX_SHADER, shadow_vert, shadow_vert_len);
 
+	shader_init(&blurp);
+	shader_source(&blurp, GL_FRAGMENT_SHADER, blur_frag, blur_frag_len);
+	shader_source(&blurp, GL_VERTEX_SHADER, quad_vert, quad_vert_len);
+
 	glUseProgram(sp.program);
 	cnk = new superchunk();
-	for (int i = 1; i < 256; i++)
+	for (int i = 1; i < 16; i++)
 	{
-		for (int j = 1; j < 256; j++)
+		for (int j = 1; j < 16; j++)
 		{
 			cnk->set(i, j, 1, 1);
 		}
@@ -212,15 +228,18 @@ void init()
 	int y = 0;
 	int cur = 1;
 
+
+	mouse_move(0, 0);
 	cnk->update();
 	init_quad();
 
 	
-	//glEnable(GL_BLEND);
-	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	NAME(GL_TEXTURE, texs[0], "Color texture");
 	NAME(GL_TEXTURE, texs[1], "Normal texture");
 	NAME(GL_TEXTURE, texs[2], "Position texture");
+	NAME(GL_TEXTURE, texs[3], "Bloom texture");
 	NAME(GL_PROGRAM, sp.program, "main");
 	NAME(GL_SHADER, sp.vert_shader, "main");
 	NAME(GL_SHADER, sp.frag_shader, "main");
@@ -230,23 +249,43 @@ void init()
 	NAME(GL_FRAMEBUFFER, fbos[0], "Deferred Rendering");
 
 	//cube = make_cube();
+	pprocess_new(&blur, width, height, &blurp);
+	pprocess_new(&blur2, width, height, &blurp);
+	glGenBuffers(1, &uboId);
+	glBindBuffer(GL_UNIFORM_BUFFER, uboId);
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(globals), &globals, GL_DYNAMIC_DRAW);
+	glBindBufferBase(GL_UNIFORM_BUFFER, 0, uboId);
+	glUniformBlockBinding(sp.program, glGetUniformBlockIndex(sp.program, "global"), 0);
+	glUniformBlockBinding(quadp.program, glGetUniformBlockIndex(shadowp.program, "global"), 0);
+	glUniformBlockBinding(shadowp.program, glGetUniformBlockIndex(shadowp.program, "global"), 0);
+	glUniformBlockBinding(blurp.program, glGetUniformBlockIndex(blurp.program, "global"), 0);
 }
 
 void light_camera() {
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glOrtho(-300, 300, -300, 300, 0, 5000);
-	//gluPerspective(45, 1, 0.1, 800);
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	gluLookAt(lightPos.x, lightPos.y, lightPos.z, lookAt.x,lookAt.y, lookAt.z, 0, 0, 1);
+	struct mat4 proj;
+	struct mat4 view;
+	struct vec3 up = vec3_new(0, 0, 1);
+	
+	globals.lightPos.x = 4;
+	globals.lightPos.y = 4;
+	globals.lightPos.z = 10;
+
+	globals.lookAt.x = 8;
+	globals.lookAt.y = 8;
+	globals.lookAt.z = 2;
+
+	mat4_ortho(&proj, 40, 40, 0, 500);
+	//mat4_perspective(&proj, 90, (float)width / height, 0.01, 500);
+	mat4_lookat(&view, &globals.lightPos, &globals.lookAt , &up);
+	mat4_mul(&view, &proj, &globals.lightMatrix);
 }
 void render()
 {
 	/* SHADOW PASS */
-	glDisable(GL_CULL_FACE);
+	
 	glBindFramebuffer(GL_FRAMEBUFFER, fbos[1]);
-	glCullFace(GL_FRONT);
+	glDisable(GL_CULL_FACE);
+	//glCullFace(GL_FRONT);
 	glViewport(0, 0, 2048, 2048);
 	glClear(GL_DEPTH_BUFFER_BIT);
 	
@@ -255,34 +294,24 @@ void render()
 	glBindVertexArray(m_vaoID[0]);
 
 	cnk->render();
-	glCullFace(GL_BACK);
+	//glCullFace(GL_BACK);
 	glEnable(GL_CULL_FACE);
 	/* OFF SCREEN RENDERING PASS */
 	glBindFramebuffer(GL_FRAMEBUFFER, fbos[0]);
 
 	glViewport(0, 0, width, height);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	gluPerspective(90, (float)width / height, 0.01, 500);
+	//gluPerspective(90, (float)width / height, 0.01, 500);
+	mat4_perspective(&globals.projectionMatrix, 90, (float)width / height, 0.01, 50);
 
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	cameraPosition.x = 128 + 128 * sin(0.1*time);
-	cameraPosition.y = 128 + 128 * cos(0.1*time);
-	cameraPosition.z = 10;
+	struct vec3 up = vec3_new(0, 0, 1);
+	mat4_lookat(&globals.viewMatrix, (vec3 *)&globals.cameraPosition, (vec3 *)&globals.lookAt, &up);
+	//mat4_debug(&viewMatrix);
+	glMultMatrixf((float *)&globals.viewMatrix);
+	//gluLookAt(cameraPosition.x, cameraPosition.y, cameraPosition.z, lookAt.x, lookAt.y, lookAt.z, 0, 0, 1);
 
-	
-
-	lookAt.x = 128;
-	lookAt.y = 128;
-	lookAt.z = 2;
-	lightPos.x = 128;
-	lightPos.y = 200 * cos(time);
-	lightPos.z = 200* sin(time);
-	gluLookAt(cameraPosition.x, cameraPosition.y, cameraPosition.z, lookAt.x, lookAt.y, lookAt.z, 0, 0, 1);
-
-
+	glBindBuffer(GL_UNIFORM_BUFFER, uboId);
+	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(globals), &globals);
 
 	
 	glUseProgram(sp.program);
@@ -290,8 +319,8 @@ void render()
 	glBindVertexArray(m_vaoID[0]);
 	glViewport(0, 0, width, height);
 	glUniform1i(glGetUniformLocation(sp.program, "isLight"), 0);
-	//float clearValue[] = { 0.0, 0.0, 0.0, 0.0 };
-	//glClearBufferfv(GL_COLOR, 3, clearValue);
+	float clearValue[] = { 0.0, 0.0, 0.0, 0.0 };
+	glClearBufferfv(GL_COLOR, 3, clearValue);
 
 	shader_verify(&sp);
 	//glUseProgram(0);
@@ -301,11 +330,20 @@ void render()
 	glUniform1i(glGetUniformLocation(sp.program, "isLight"), 1);
 
 	glPointSize(10);
-	glBegin(GL_POINTS);
-	glVertex3f(lightPos.x, lightPos.y, lightPos.z);
-	glEnd();
-
-
+	//glBegin(GL_POINTS);
+	//glVertex3f(lightPos.x, lightPos.y, lightPos.z);
+	//glEnd();
+	glUseProgram(blurp.program);
+	glUniform1i(glGetUniformLocation(blurp.program, "horizontal"), 0);
+	GLuint out_tex = pprocess_do(&blur, texs[3]);
+	glUniform1i(glGetUniformLocation(blurp.program, "horizontal"), 1);
+	GLuint out_tex2 = pprocess_do(&blur2, out_tex);
+	glUniform1i(glGetUniformLocation(blurp.program, "horizontal"), 0);
+	GLuint out_tex3 = pprocess_do(&blur, out_tex2);
+	glUniform1i(glGetUniformLocation(blurp.program, "horizontal"), 1);
+	GLuint out_tex4 = pprocess_do(&blur2, out_tex3);
+	glActiveTexture(GL_TEXTURE8);
+	glBindTexture(GL_TEXTURE_2D, out_tex2);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glViewport(0, 0, width, height);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -316,10 +354,11 @@ void render()
 	glUniform1i(tex1Loc, 0);
 	glUniform1i(tex2Loc, 1);
 	glUniform1i(tex3Loc, 2);
-	glUniform1i(tex4Loc, 3);
+	glUniform1i(tex4Loc, 8);
 	glUniform1i(shadowLoc, 4);
-	glUniform3f(cameraLoc, cameraPosition.x, cameraPosition.y, cameraPosition.z);
-	glUniform3f(lightLoc, lightPos.x, lightPos.y, lightPos.z);
+	glUniform1i(shadow2Loc, 4);
+	glUniform3f(cameraLoc, globals.cameraPosition.x, globals.cameraPosition.y, globals.cameraPosition.z);
+	glUniform3f(lightLoc, globals.lightPos.x, globals.lightPos.y, globals.lightPos.z);
 
 	shader_verify(&quadp);
 	draw_quad();
@@ -355,6 +394,9 @@ void __stdcall WinMainCRTStartup() {
 	unsigned int lastUpdate = GetTickCount();
 	int nbFrames = 0;
 	char fpsString[50];
+
+	SetCapture(hwnd);
+
 	for(;;)
 	{
 		// Measure speed
@@ -367,7 +409,7 @@ void __stdcall WinMainCRTStartup() {
 			OutputDebugStringA(fpsString);
 			nbFrames = 0;
 			lastTime = GetTickCount();
-			//tick();
+			tick();
 		}
 		if(PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))           // Is There A Message Waiting?
 		{
@@ -389,7 +431,9 @@ void __stdcall WinMainCRTStartup() {
 	}
 	return;
 }
-
+POINT g_OrigCursorPos;
+POINT g_OrigWndPos;
+bool g_MovingMainWnd = false;
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	
@@ -456,13 +500,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		height = HIWORD(lParam);
 		glViewport(0, 0,  width, height);
 		glActiveTexture(GL_TEXTURE6);
-		for (int i = 0; i < MRTS; i++) {
-			glBindTexture(GL_TEXTURE_2D, texs[i]);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-		}
-		glBindTexture(GL_TEXTURE_2D, texs[MRTS]);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, NULL);
-		
+		texture_setup();
 		glBindFramebuffer(GL_FRAMEBUFFER, fbos[0]);
 
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, texs[MRTS], 0);
@@ -471,8 +509,77 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		break;
 	}
 	case WM_SETCURSOR:
-		SetCursor(LoadCursor(hInstance, IDC_ARROW));
+		SetCursor(LoadCursor(NULL, IDC_ARROW));
+		break;
+	case WM_RBUTTONUP:
+		ReleaseCapture();
+		SetCursor(LoadCursor(NULL, IDC_ARROW));
+		return 0;
+
+	case WM_CAPTURECHANGED:
+		g_MovingMainWnd = (HWND)lParam == hWnd;
+		return 0;
+	case WM_MOUSEWHEEL:
+		radius += (float)(short)HIWORD(wParam)/120.0;
+		radius = min(max(radius, 3), 20);
+		mouse_move(0, 0);
+		break;
+	case WM_MOUSEMOVE:
+		if (g_MovingMainWnd)
+		{
+			POINT pt;
+			if (GetCursorPos(&pt))
+			{
+				int wnd_x = g_OrigWndPos.x +
+					(pt.x - g_OrigCursorPos.x);
+				int wnd_y = g_OrigWndPos.y +
+					(pt.y - g_OrigCursorPos.y);
+				mouse_move(wnd_x, wnd_y);
+				SetCursorPos(g_OrigCursorPos.x, g_OrigCursorPos.y);
+			}
+		}
+		{
+			POINT pt;
+			GetCursorPos(&pt);
+			struct mat4 inverseView;
+			struct mat4 inverseProjection;
+			mat4_inverse((float *)&globals.viewMatrix, (float *)&inverseView);
+			mat4_inverse((float *)&globals.projectionMatrix, (float *)&inverseProjection);
+			struct vec4 ray = { (float)2 * pt.x / width - 1, 1 - (float)2 * pt.y / height , -1, 1};
+			vec4 projectionRay = mat4_mul(&inverseProjection, &ray);
+			projectionRay.z = -1;
+			projectionRay.w = 0;
+			vec4 viewRay = mat4_mul(&inverseView, &projectionRay);
+			printf("%f %f\n", (float)pt.x, (float)pt.y);
+			printf("%f %f\n", (float)2 * pt.x / width - 1, 1 - (float)2 * pt.y / height);
+			printf("%f %f %f\n", viewRay.x, viewRay.y, viewRay.z);
+			float coeff = (-globals.cameraPosition.z) / viewRay.z;
+			float x = globals.cameraPosition.x + coeff*viewRay.x;
+			float y = globals.cameraPosition.y + coeff*viewRay.y;
+			x = max(min(x, 15), 1);
+			y = max(min(y, 15), 1);
+			printf("%d %d", (int)floor(x), (int)floor(y));
+			cnk->set(floor(x), floor(y), 2, 1);
+			printf("%f %f\n", x, y);
+			printf("===\n");
+			return 0;
+		}
 	case WM_SYSKEYDOWN:
+		return 0;
+		break;
+	case WM_RBUTTONDOWN:
+		// here you can add extra check and decide whether to start
+		// the window move or not
+		if (GetCursorPos(&g_OrigCursorPos))
+		{
+			RECT rt;
+			GetWindowRect(hWnd, &rt);
+			g_OrigWndPos.x = rt.left;
+			g_OrigWndPos.y = rt.top;
+			g_MovingMainWnd = true;
+			SetCapture(hWnd);
+			SetCursor(LoadCursor(NULL, NULL));
+		}
 		return 0;
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);
@@ -486,5 +593,9 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	LPSTR lpcmdline,
 	int nshowcmd)
 {
+	WinMainCRTStartup();
+}
+
+void main() {
 	WinMainCRTStartup();
 }

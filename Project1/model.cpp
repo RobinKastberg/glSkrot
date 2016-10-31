@@ -1,18 +1,59 @@
 #include "stdafx.h"
 
 
-
-struct edge *edge_new(struct face *f, struct vertex *v0, struct vertex *v1)
+unsigned short inline hashfunction(register int key)
 {
+	return ((((key*key * 5 * key*0x12345678) + key )% 0xFFFF) & 0xFFFF);
+}
+void hash_init(struct _hash *h)
+{
+	h->mem = (struct _hash_entry *)calloc(4, 2*2*2*65536);
+	h->size = 2*2*2*65536;
+}
+#define _LINEAR_PROBE_MAX 250
+void hash_set(struct _hash *h, int key, short value)
+{
+	unsigned int hash = hashfunction(key);
+	int i = hash;
+	while (h->mem[i].key != 0)
+	{
+		i++;
+		assert(i - hash < _LINEAR_PROBE_MAX);
+	}
+	h->mem[i].key = key;
+	h->mem[i].value = value;
+}
+
+int hash_get(struct _hash *h, int key)
+{
+	unsigned int hash = hashfunction(key);
+	int i = hash;
+	while (h->mem[i].key != key)
+	{
+		i++;
+		if (i - hash > _LINEAR_PROBE_MAX)
+			return -1;
+	}
+	return h->mem[i].value;
+}
+
+
+struct edge *edge_new(model *m, struct face *f, int v0i, int v1i)
+{
+	assert(v0i < m->verts.size());
+	assert(v1i < m->verts.size());
 	struct edge *e = new edge();
-	v0->out = e;
-	e->v0 = v0;
-	e->v1 = v1;
+	m->verts[v0i]->out = e;
+	e->v0 = m->verts[v0i];
+	e->v0i = v0i;
+	e->v1 = m->verts[v1i];
+	e->v1i = v1i;
 	e->face = f;
 	return e;
 }
 void chkdsk(struct model *m)
 {
+
 #ifdef _DEBUG
 	for (int i = 0; i < m->edges.size(); i++)
 	{
@@ -40,19 +81,28 @@ void chkdsk(struct model *m)
 	}
 #endif
 }
+static inline int pair(register short i, register short j)
+{
+	return ((int)i << 16) | (j & 0xFFFF);
+}
 void find_twins(std::vector<edge *> edges)
 {
-	std::map< std::pair<vertex *, vertex *>, edge * > Edges;
+	struct _hash h;
+	hash_init(&h);
 	for (int i = 0; i < edges.size(); i++)
-		Edges[std::make_pair(edges[i]->v0, edges[i]->v1)] = edges[i];
+		hash_set(&h, pair(edges[i]->v0i, edges[i]->v1i), i);
+		//Edges[std::make_pair(edges[i]->v0, edges[i]->v1)] = edges[i];
 	for (int i = 0; i < edges.size(); i++)
 		if (edges[i]->pair == NULL)
 		{
-			edge *pair = Edges[std::make_pair(edges[i]->v1, edges[i]->v0)];
-			edges[i]->pair = pair;
+			//edge *pair = Edges[std::make_pair(edges[i]->v1, edges[i]->v0)];
+			unsigned short index = hash_get(&h, pair(edges[i]->v1i, edges[i]->v0i));
+			edge *p = edges[index];
+			edges[i]->pair = p;
 		}
 		
 }
+
 void draw(struct model *m)
 {
 	if (m->up_to_date == 0)
@@ -73,7 +123,7 @@ void draw(struct model *m)
 				edge *ee = e;
 				int facesCount = 0;
 				do {
-					volatile float N[3];
+					float N[3];
 					facesCount++;
 					f = e->face;
 					float A[3] = { f->edge->v1->coord[0] - f->edge->v0->coord[0],
@@ -112,12 +162,13 @@ void draw(struct model *m)
 		
 
 		glBindBuffer(GL_ARRAY_BUFFER, m->vbo);
-		glBufferData(GL_ARRAY_BUFFER, 2 * 6 * 3 * m->faces.size() * sizeof(float), glData, GL_DYNAMIC_DRAW);
-		if (glewGetExtension("GL_NV_vertex_buffer_unified_memory")) {
+		glBufferData(GL_ARRAY_BUFFER, 2 * 6 * 3 * m->faces.size() * sizeof(float), NULL, GL_DYNAMIC_DRAW);
+		glBufferSubData(GL_ARRAY_BUFFER, 0, 2 * 6 * 3 * m->faces.size() * sizeof(float), glData);
+		if (GLEW_NV_vertex_buffer_unified_memory) {
 			m->vbo_size = 2 * 6 * 3 * m->faces.size() * sizeof(float);
 			glGetBufferParameterui64vNV(GL_ARRAY_BUFFER, GL_BUFFER_GPU_ADDRESS_NV, &m->vbo_addr);
 			glMakeBufferResidentNV(GL_ARRAY_BUFFER, GL_READ_ONLY);
-
+			
 		} else {
 			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 24, 0);
 			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 24, (void *)12);
@@ -149,7 +200,7 @@ void draw(struct model *m)
 	} else {
 		glBindBuffer(GL_ARRAY_BUFFER, m->vbo);
 	}
-	glDrawArrays(GL_TRIANGLES, 0,  3 *  m->faces.size());
+	glDrawArrays(GL_TRIANGLES, 0,  3 *  m->face_count);
 }
 void smooth(struct model *m)
 {
@@ -436,10 +487,12 @@ void subdivide(struct model *m, bool loop)
 }
 
 
-struct model *make_model(int *cube_vertices, short *indices, int vsize, int isize)
+void make_model(struct model *m, int *cube_vertices, short *indices, int vsize, int isize)
 {
 
-	model *m = new model();
+	m->verts.clear();
+	m->faces.clear();
+	m->edges.clear();
 	for (int i = 0; i < vsize; i++)
 	{
 		vertex *v = new vertex();
@@ -453,9 +506,10 @@ struct model *make_model(int *cube_vertices, short *indices, int vsize, int isiz
 		face *f = new face();
 		m->faces.push_back(f);
 
-		edge *e1 = edge_new(f, m->verts[indices[3 * i]], m->verts[indices[3 * i + 1]]);
-		edge *e2 = edge_new(f, m->verts[indices[3 * i + 1]], m->verts[indices[3 * i + 2]]);
-		edge *e3 = edge_new(f, m->verts[indices[3 * i + 2]], m->verts[indices[3 * i]]);
+		edge *e1 = edge_new(m, f, indices[3 * i], indices[3 * i + 1]);
+		edge *e2 = edge_new(m, f, indices[3 * i + 1], indices[3 * i + 2]);
+		edge *e3 = edge_new(m, f, indices[3 * i + 2], indices[3 * i]);
+		
 		m->edges.push_back(e1);
 		m->edges.push_back(e2);
 		m->edges.push_back(e3);
@@ -484,6 +538,14 @@ struct model *make_model(int *cube_vertices, short *indices, int vsize, int isiz
 	//subdivide(m);
 	//subdivide(m);
 
-	glGenBuffers(1, &m->vbo);
-	return m;
+	m->up_to_date = 0;
+#ifdef _DEBUG
+	struct _hash h;
+	hash_init(&h);
+	int key = rand();
+	short value = rand();
+	hash_set(&h, key, value);
+	short i = hash_get(&h, key);
+	assert(i == value);
+#endif
 }

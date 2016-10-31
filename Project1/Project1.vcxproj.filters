@@ -39,6 +39,9 @@
     <ClInclude Include="model.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="transform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -62,10 +65,11 @@
     <ClCompile Include="loader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="transform.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="shadow.frag" />
-    <None Include="shadow.vert" />
     <None Include="xxd.exe" />
   </ItemGroup>
   <ItemGroup>
@@ -73,5 +77,8 @@
     <CustomBuild Include="main.frag" />
     <CustomBuild Include="main.vert" />
     <CustomBuild Include="quad.frag" />
+    <CustomBuild Include="shadow.frag" />
+    <CustomBuild Include="shadow.vert" />
+    <CustomBuild Include="blur.frag" />
   </ItemGroup>
 </Project>

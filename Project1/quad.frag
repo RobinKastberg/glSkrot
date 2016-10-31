@@ -1,19 +1,29 @@
-#version 330 compatibility
+#version 400 core
 out vec4 color_out;
 in vec2 coords;
 uniform sampler2D tex; // Color
 uniform sampler2D tex2;// Normal
 uniform sampler2D tex3;// Position
 uniform sampler2D tex4;// Lighting
+uniform sampler2D tex5;
 uniform sampler2DShadow shadowTex; // Shadow
-uniform vec3 cameraPosition;
+//uniform vec3 cameraPosition;
 uniform int isLight;
-uniform vec3 lightPos;
+//uniform vec3 lightPos;
 vec3 fogColor = vec3(0.5, 0.5, 0.5);
 
 const bool horizontal = true;
 
-uniform float weight[5] = float[] (0.227027, 0.1945946, 0.1216216, 0.054054, 0.016216);
+layout(std140) uniform global {
+	mat4 viewMatrix;
+	mat4 projectionMatrix;
+	mat4 lightMatrix;
+	vec3 cameraPosition;
+	vec3 lookAt;
+	vec3 lightPos;
+};
+
+
 
 void main(){
 
@@ -48,48 +58,45 @@ void main(){
     vec3 vHalfVector = normalize(reflect(cameraPosition - lightPos, normal));
     
 	float dist = clamp(distance(cameraPosition, position)/300,0,1);
-	float lightDist = clamp(distance(cameraPosition, lightPos)/100000,0,1);
+	float distCenter = clamp(distance(vec3(8,8,0), position)/128,0,1);
+	float lightDist = clamp(distance(cameraPosition, lightPos)/300,0,1);
 	fogColor = clamp(vec3(0.5,0.5,0.5)*(1 - lightDist), 0, 1);
 
-
-	vec4 shadowCoord = gl_ModelViewProjectionMatrix * vec4(position,1.0);
+	vec4 shadowCoord = lightMatrix * vec4(position,1.0);
 	shadowCoord /= shadowCoord.w;
 	shadowCoord = 0.5*shadowCoord + 0.5;
 
 		float visibility = 0.7;
 		//float bias = 0.005; 
 	shadowCoord.z -= 0.01;
-	//shadowCoord.z += max(0.1 * (1.0 - dot(normal, lightDir)), 0.05); 
+	//shadowCoord.z += max(0.1 * (dot(normal, lightDir)), 0.05); 
 	//visibility = texture( shadowTex, shadowCoord.xyz );
 
 	visibility = 0.0;
-	vec2 texelSize = 1.0 / textureSize(shadowTex, 0);
-	for(int x = -1; x <= 1; ++x)
+
+	visibility = texture(shadowTex, shadowCoord.xyz);        
+
+	if(distance(position.xyz, cameraPosition.xyz) > 5)
 	{
-		for(int y = -1; y <= 1; ++y)
-		{
-			visibility += texture(shadowTex, shadowCoord.xyz + vec3(x* texelSize.x, y* texelSize.y, 0) );        
-		}    
+	//	image = vec3(blur(tex, coords));
 	}
-	visibility = visibility/18.0 + 0.7;
 
-
-	color_out.rgb =  image * (0.3 + clamp(dot(normal, -lightDir), 0, 1)) * visibility;
+	color_out.rgb =  image * (0.3 + clamp(2*dot(normal, -lightDir), 0, 2)) * visibility;
 	//return;
-	vec2 diff = 0.5 / textureSize(tex3, 0);
+	vec2 diff = 1 / textureSize(tex3, 0);
 
 	vec3 pos1 = vec3(texture(tex3, coords + vec2(diff.x, 0))).rgb;
 	vec3 pos2 = vec3(texture(tex3, coords + vec2(0, diff.y))).rgb;
 	vec3 pos3 = vec3(texture(tex3, coords + vec2(0, -diff.y))).rgb;
 	vec3 pos4 = vec3(texture(tex3, coords + vec2(-diff.x, 0))).rgb;
 
-	vec2 diff2 = 0.5 / textureSize(tex2, 0);;
+	vec2 diff2 = 1 / textureSize(tex2, 0);;
 	vec3 norm1 = vec3(texture(tex2, coords + vec2(diff2.x, 0))).rgb;
 	vec3 norm2 = vec3(texture(tex2, coords + vec2(0, diff2.y))).rgb;
 	vec3 norm3 = vec3(texture(tex2, coords + vec2(0, -diff2.y))).rgb;
 	vec3 norm4 = vec3(texture(tex2, coords + vec2(-diff2.x, 0))).rgb;
 
-	const float delta = 1;
+	const float delta = 0.9;
 	if(distance(position, pos1) > delta
 	|| distance(position, pos2) > delta 
 	|| distance(position, pos3) > delta 
@@ -103,12 +110,20 @@ void main(){
 	}
 
 
-	color_out.rgb = mix(fogColor, color_out.rgb, 1-dist);
-	//color_out.rgb = mix(color_out.rgb, vec3(1,1,0), lighting.r);
+	//color_out.rgb = mix(fogColor, color_out.rgb, 1-dist);
+	color_out.rgb = mix(color_out.rgb, 10*lighting.rgb, 0.1);
+	//color_out.rgb *= 16;
+	vec3 x = color_out.rgb;
+	x = (x*(6.2*x+.5))/(x*(6.2*x+1.7)+0.06);
+	//color_out.rgb = 1.0/(color_out.rgb + vec3(1.0));
+	const float gamma = 2.2;
+	//color_out.rgb = pow(color_out.rgb, vec3(1.0 / gamma));
+	color_out.rgb = x;
 	//color_out.rgb = vec3(ivec3(15*color_out.rgb)/5);
-	//color_out.rgb = vec3(visibility);
-	//color_out.rgb = vec3(lighting);
-	//color_out.rgb = texture(shadowTex, vec3, coords).rga;
+	color_out.rgb = color_out.rgb *vec3(visibility);
+	//color_out = mix(color_out, lighting, lighting.a);
+	//color_out = lighting;
+	//color_out.rgb = texture(tex5, coords).rga;
 		color_out.a = 1;
 	//color_out.rgb = shadowCoord.rgb;
 	//color_out.rgb = vec3(1,1,1)*(distance(normal, norm1) + distance(normal, norm2) + distance(normal, norm3) + distance(normal, norm4));
