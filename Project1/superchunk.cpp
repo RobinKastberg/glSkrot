@@ -2,7 +2,6 @@
 
 
 extern struct shader_program sp;
-extern struct xyz cameraPosition, lookAt;
 
 superchunk::superchunk() {
 	memset(c, 0, sizeof c);
@@ -48,12 +47,12 @@ void superchunk::set(int x, int y, int z, GLubyte type) {
 void superchunk::render() {
 
 	struct xyz fudgedCamera;
-	fudgedCamera.x = cameraPosition.x;
-	fudgedCamera.y = cameraPosition.y;
-	float len = sqrtf((lookAt.x - cameraPosition.x)*(lookAt.x - cameraPosition.x) +
-		(lookAt.y - cameraPosition.y)*(lookAt.y - cameraPosition.y));
-	fudgedCamera.x -= CX * (lookAt.x - cameraPosition.x) / len;
-	fudgedCamera.y -= CY * (lookAt.y - cameraPosition.y) / len;
+	fudgedCamera.x = globals.cameraPosition.x;
+	fudgedCamera.y = globals.cameraPosition.y;
+	float len = sqrtf((globals.lookAt.x - globals.cameraPosition.x)*(globals.lookAt.x - globals.cameraPosition.x) +
+		(globals.lookAt.y - globals.cameraPosition.y)*(globals.lookAt.y - globals.cameraPosition.y));
+	fudgedCamera.x -= CX * (globals.lookAt.x - globals.cameraPosition.x) / len;
+	fudgedCamera.y -= CY * (globals.lookAt.y - globals.cameraPosition.y) / len;
 
 	if (glewGetExtension("GL_NV_vertex_buffer_unified_memory"))
 	{
@@ -69,10 +68,10 @@ void superchunk::render() {
 		for (int y = 0; y < SCY; y++)
 			for (int z = 0; z < SCZ; z++)
 				if (c[x][y][z]
-					&& (x* CX - cameraPosition.x)* (x* CX - cameraPosition.x)
-					  + (y*CY - cameraPosition.y)* (y*CY - cameraPosition.y) < 300*300
-					&& ((x * CX - fudgedCamera.x)* (lookAt.x - fudgedCamera.x) + 
-					(y * CY - fudgedCamera.y)* (lookAt.y - fudgedCamera.y)) > 0) {
+					&& (x* CX - globals.cameraPosition.x)* (x* CX - globals.cameraPosition.x)
+					  + (y*CY - globals.cameraPosition.y)* (y*CY - globals.cameraPosition.y) < 300*300
+					&& ((x * CX - fudgedCamera.x)* (globals.lookAt.x - fudgedCamera.x) +
+					(y * CY - fudgedCamera.y)* (globals.lookAt.y - fudgedCamera.y)) > 0) {
 					//glm::translate(glm::mat4(1), glm::vec3(x * CX, y * CY, z * CZ));
 					//lPushMatrix();
 					//glLoadIdentity();

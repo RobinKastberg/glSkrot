@@ -10,6 +10,7 @@ chunk::chunk() {
 	elements = 0;
 	changed = true;
 	m = new model();
+	glGenBuffers(1, &m->vbo);
 }
 
 chunk::~chunk() {
@@ -28,12 +29,13 @@ void chunk::set(int x, int y, int z, GLubyte type) {
 #define INDICES  CX * CY * CZ * 12 * 3
 int chunk::find_or_add(int *vertices, int compare, int *index)
 {
-	if (vertex_cache.find(compare) != vertex_cache.end())
-		return vertex_cache[compare];
+	int find = hash_get(&vertex_cache, compare);
+	if(find != -1)
+		return find;
 	
 	int i = *index;
 	vertices[i] = compare;
-	vertex_cache[compare] = i;
+	hash_set(&vertex_cache,compare, i);
 	(*index)++;
 	return i;
 }
@@ -42,7 +44,7 @@ void chunk::update() {
 
 	int *vertices = new int[VERTICES];
 	short *indices  = new short[INDICES];
-	vertex_cache.clear();
+	hash_init(&vertex_cache);
 	int v_i = 0;
 	int i_i = 0;
 
@@ -143,7 +145,7 @@ void chunk::update() {
 
 	if (v_i) {
 		// DELETE M IF ALREADY THERE.
-		this->m = make_model(vertices, indices, v_i, i_i);
+		make_model(m, vertices, indices, v_i, i_i);
 	}
 
 	delete [] vertices;

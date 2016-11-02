@@ -9,9 +9,12 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    <Filter Include="Fragment Shader">
+      <UniqueIdentifier>{f96457a3-98c8-4d9e-9e92-107cf4f74aa0}</UniqueIdentifier>
+      <Extensions>frag;</Extensions>
+    </Filter>
+    <Filter Include="Vertex Shader">
+      <UniqueIdentifier>{7631c4dc-a0af-445d-a807-c412fb2fa396}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -39,6 +42,9 @@
     <ClInclude Include="model.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="transform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -62,16 +68,36 @@
     <ClCompile Include="loader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="transform.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="shadow.frag" />
-    <None Include="shadow.vert" />
     <None Include="xxd.exe" />
+    <None Include="glslangValidator.exe" />
+    <None Include="shader_compile.bat" />
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="quad.vert" />
-    <CustomBuild Include="main.frag" />
-    <CustomBuild Include="main.vert" />
-    <CustomBuild Include="quad.frag" />
+    <CustomBuild Include="main.frag">
+      <Filter>Fragment Shader</Filter>
+    </CustomBuild>
+    <CustomBuild Include="main.vert">
+      <Filter>Vertex Shader</Filter>
+    </CustomBuild>
+    <CustomBuild Include="quad.frag">
+      <Filter>Fragment Shader</Filter>
+    </CustomBuild>
+    <CustomBuild Include="blur.frag">
+      <Filter>Fragment Shader</Filter>
+    </CustomBuild>
+    <CustomBuild Include="quad.vert">
+      <Filter>Vertex Shader</Filter>
+    </CustomBuild>
+    <CustomBuild Include="shadow.vert">
+      <Filter>Vertex Shader</Filter>
+    </CustomBuild>
+    <CustomBuild Include="empty.frag">
+      <Filter>Fragment Shader</Filter>
+    </CustomBuild>
   </ItemGroup>
 </Project>
