@@ -1,4 +1,3 @@
-#version 400 core
 out vec4 color_out;
 in vec2 coords;
 uniform sampler2D tex; // Color
@@ -14,14 +13,6 @@ vec3 fogColor = vec3(0.5, 0.5, 0.5);
 
 const bool horizontal = true;
 
-layout(std140) uniform global {
-	mat4 viewMatrix;
-	mat4 projectionMatrix;
-	mat4 lightMatrix;
-	vec3 cameraPosition;
-	vec3 lookAt;
-	vec3 lightPos;
-};
 
 
 

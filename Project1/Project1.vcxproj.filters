@@ -74,7 +74,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="xxd.exe" />
-    <None Include="glslangValidator.exe" />
     <None Include="shader_compile.bat" />
   </ItemGroup>
   <ItemGroup>

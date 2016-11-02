@@ -46,7 +46,7 @@ void superchunk::set(int x, int y, int z, GLubyte type) {
 
 void superchunk::render() {
 
-	struct xyz fudgedCamera;
+	struct vec3 fudgedCamera;
 	fudgedCamera.x = globals.cameraPosition.x;
 	fudgedCamera.y = globals.cameraPosition.y;
 	float len = sqrtf((globals.lookAt.x - globals.cameraPosition.x)*(globals.lookAt.x - globals.cameraPosition.x) +

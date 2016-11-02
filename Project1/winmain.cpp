@@ -208,7 +208,7 @@ void init()
 	shader_source(&quadp, GL_VERTEX_SHADER, quad_vert, quad_vert_len);
 
 	shader_init(&shadowp);
-	shader_source(&shadowp, GL_FRAGMENT_SHADER, shadow_frag, shadow_frag_len);
+	shader_source(&shadowp, GL_FRAGMENT_SHADER, empty_frag, empty_frag_len);
 	shader_source(&shadowp, GL_VERTEX_SHADER, shadow_vert, shadow_vert_len);
 
 	shader_init(&blurp);

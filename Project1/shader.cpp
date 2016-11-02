@@ -1,8 +1,16 @@
 #include "stdafx.h"
 
-const char *INCLUDE =
+const char * const INCLUDE =
 "#version 330 compatibility\n"
-"#define debug(on)\n";
+"#define debug(on)\n"
+"layout(std140) uniform global {"
+"	mat4 viewMatrix;"
+"	mat4 projectionMatrix;"
+"	mat4 lightMatrix;"
+"	vec3 cameraPosition;"
+"	vec3 lookAt;"
+"	vec3 lightPos;"
+"};\n";
 
 void shader_init(struct shader_program *self)
 {
@@ -66,8 +74,8 @@ void shader_verify(const struct shader_program *self)
 bool shader_source(struct shader_program *self, GLenum type, const unsigned char * const str, int size)
 {
 	GLuint shader = glCreateShader(type);
-	int sz[2] = { strlen(INCLUDE), size };
-	const char *  ptrs[2] = { INCLUDE, str };
+	int sz[2] = { strlen((const char *)INCLUDE), size };
+	const char * const ptrs[2] = { (const char *const)INCLUDE, (const char *const)str };
 	glShaderSource(shader, 2,  (char **)ptrs, sz);
 	glCompileShader(shader);
 	check_compile(shader, GL_COMPILE_STATUS);

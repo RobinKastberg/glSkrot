@@ -1,10 +1,4 @@
-#version 330
-#extension GL_ARB_texture_gather : enable
-#ifdef GL_ARB_texture_gather
-#define tex textureOffset
-#else
-#define tex textureOffset
-#endif
+
 out vec4 color_out;
 in vec2 coords;
 uniform sampler2D pprocess_in; 
@@ -17,11 +11,11 @@ void main()
 	int y = 0;
 	if(horizontal) {
 		for(int i=-4;i<=4;i++) {
-		ret += weights[4+i]*tex(pprocess_in, coords, ivec2(2*i, 0) );    
+		ret += weights[4+i]*textureOffset(pprocess_in, coords, ivec2(2*i, 0) );    
 		}
 	} else {
 		for(int i=-4;i<=4;i++) {
-		ret += weights[4+i]*tex(pprocess_in, coords, ivec2(0, 2*i) );    
+		ret += weights[4+i]*textureOffset(pprocess_in, coords, ivec2(0, 2*i) );    
 		}
 	}      
 	color_out = ret;

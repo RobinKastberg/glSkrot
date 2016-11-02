@@ -250,7 +250,6 @@
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Compiling shaders</Message>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Compiling shaders</Message>
     </CustomBuild>
-    <None Include="glslangValidator.exe" />
     <None Include="shader_compile.bat" />
     <None Include="xxd.exe" />
   </ItemGroup>

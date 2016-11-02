@@ -33,9 +33,6 @@
 #include "model.h"
 #include "transform.h"
 
-struct xyz {
-	float x, y, z;
-};
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 void texture(GLuint *handle, GLenum format, int width, int height, GLenum *params);
 enum {BUFFER_FLOAT, BUFFER_DEPTH, BUFFER_COLOR, BUFFER_MONO} trolol;
@@ -69,12 +66,7 @@ struct global {
 };
 
 extern struct global globals;
-enum {BUFFER_FLOAT, BUFFER_DEPTH, BUFFER_COLOR, BUFFER_MONO};
 
-struct xyz {
-	float x;
-	float y;
-	float z;
-};
+
 
 #define CRASH(str) MessageBoxA(NULL, str, __FILE__, MB_OK | MB_ICONWARNING)
