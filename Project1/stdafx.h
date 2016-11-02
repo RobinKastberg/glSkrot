@@ -36,6 +36,8 @@
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 double noise(double x, double y, double z);
 void permute();
+void texture(GLuint *handle, GLenum format, int width, int height, GLenum *params);
+enum {BUFFER_FLOAT, BUFFER_DEPTH, BUFFER_COLOR, BUFFER_MONO};
 
 struct xyz {
 	float x;

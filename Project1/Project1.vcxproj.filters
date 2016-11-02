@@ -59,18 +59,19 @@
     <ClCompile Include="model.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="loader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="Project1.rc">
-      <Filter>Resource Files</Filter>
-    </ResourceCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="main.frag" />
-    <None Include="main.vert" />
-    <None Include="quad.vert" />
-    <None Include="quad.frag" />
     <None Include="shadow.frag" />
     <None Include="shadow.vert" />
+    <None Include="xxd.exe" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="quad.vert" />
+    <CustomBuild Include="main.frag" />
+    <CustomBuild Include="main.vert" />
+    <CustomBuild Include="quad.frag" />
   </ItemGroup>
 </Project>

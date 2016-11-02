@@ -63,7 +63,7 @@ void shader_verify(const struct shader_program *self)
 		exit(1);
 	}
 }
-bool shader_source(struct shader_program *self, GLenum type, const char *  str, int size)
+bool shader_source(struct shader_program *self, GLenum type, const unsigned char * const str, int size)
 {
 	GLuint shader = glCreateShader(type);
 	int sz[2] = { strlen(INCLUDE), size };
