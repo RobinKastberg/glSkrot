@@ -1,5 +1,9 @@
 #include "stdafx.h"
 
+const char *INCLUDE =
+"#version 330 compatibility\n"
+"#define debug(on)\n";
+
 void shader_init(struct shader_program *self)
 {
 	self->program = glCreateProgram();
@@ -24,8 +28,7 @@ static bool check_compile(GLuint shader, GLenum type)
 		//The maxLength includes the NULL character
 		char *infoLog = (char *)malloc(status);
 		getInfo(shader, status, &status, infoLog);
-		OutputDebugStringA(infoLog);
-		exit(1);
+		CRASH(infoLog);
 		free(infoLog);
 		//We don't need the shader anymore.
 		glDeleteShader(shader);
@@ -60,11 +63,12 @@ void shader_verify(const struct shader_program *self)
 		exit(1);
 	}
 }
-bool shader_source(struct shader_program *self, GLenum type, const char *str, int size)
+bool shader_source(struct shader_program *self, GLenum type, const char *  str, int size)
 {
 	GLuint shader = glCreateShader(type);
-	int sz[1] = { size };
-	glShaderSource(shader, 1, &str, sz);
+	int sz[2] = { strlen(INCLUDE), size };
+	const char *  ptrs[2] = { INCLUDE, str };
+	glShaderSource(shader, 2,  (char **)ptrs, sz);
 	glCompileShader(shader);
 	check_compile(shader, GL_COMPILE_STATUS);
 	glAttachShader(self->program, shader);

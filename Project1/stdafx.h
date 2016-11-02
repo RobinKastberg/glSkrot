@@ -42,3 +42,5 @@ struct xyz {
 	float y;
 	float z;
 };
+
+#define CRASH(str) MessageBoxA(NULL, str, __FILE__, MB_OK | MB_ICONWARNING)
