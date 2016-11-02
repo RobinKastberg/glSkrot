@@ -434,6 +434,8 @@ void __stdcall WinMainCRTStartup() {
 POINT g_OrigCursorPos;
 POINT g_OrigWndPos;
 bool g_MovingMainWnd = false;
+int current_x = 0;
+int current_y = 0;
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	
@@ -553,7 +555,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			printf("%f %f\n", (float)pt.x, (float)pt.y);
 			printf("%f %f\n", (float)2 * pt.x / width - 1, 1 - (float)2 * pt.y / height);
 			printf("%f %f %f\n", viewRay.x, viewRay.y, viewRay.z);
-			float coeff = (1-globals.cameraPosition.z) / viewRay.z;
+			float coeff = (1.5-globals.cameraPosition.z) / viewRay.z;
 			float x = globals.cameraPosition.x + coeff*viewRay.x;
 			float y = globals.cameraPosition.y + coeff*viewRay.y;
 
@@ -562,27 +564,37 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			int minx;
 			int miny;
 			float dist = FLT_MAX;
-			for (int i = 0; i < 16; i++)
+			for (float i = 0; i < 16; i++)
 			{
-				for (int j = 0; j < 16; j++)
+				for (float j = 0; j < 16; j++)
 				{
-					float dist2 = sqrtf((i - x)*(i - x) + (j - y)*(j - y));
+					float dist2 = sqrtf((i - x + 0.5)*(i - x + 0.5) + (j - y  + 0.5)*(j - y + 0.5));
+					
 					if (dist2 < dist)
 					{
 						minx = i;
 						miny = j;
+						dist = dist2;
 					}
 				}
 			}
-			if (minx > 1 && minx < 15 && miny > 1 && miny < 15 && !cnk->get(minx, miny, 2))
+			printf("%f\n", dist);
+			if (minx > 1 && minx < 15 && miny > 1 && miny < 15 && !cnk->get(minx, miny, 2)) {
+				cnk->set(current_x, current_y, 2, 0);
 				cnk->set(minx, miny, 2, 1);
-
+				current_x = minx;
+				current_y = miny;
+			}
 			printf("%d %d\n", minx, miny);
 			printf("===\n");
 			return 0;
 		}
 	case WM_SYSKEYDOWN:
 		return 0;
+		break;
+	case WM_LBUTTONDOWN:
+		current_x = -1;
+		current_y = -1;
 		break;
 	case WM_RBUTTONDOWN:
 		// here you can add extra check and decide whether to start
