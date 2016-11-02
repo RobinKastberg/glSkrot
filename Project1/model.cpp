@@ -149,7 +149,7 @@ void draw(struct model *m)
 	} else {
 		glBindBuffer(GL_ARRAY_BUFFER, m->vbo);
 	}
-	glDrawArrays(GL_TRIANGLES, 0,  3 *  m->faces.size());
+	glDrawArrays(GL_TRIANGLES, 0,  3 *  m->face_count);
 }
 void smooth(struct model *m)
 {
