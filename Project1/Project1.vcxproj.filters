@@ -45,6 +45,12 @@
     <ClInclude Include="transform.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="snow.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="quad.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -71,16 +77,25 @@
     <ClCompile Include="transform.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="quad.cpp">
+    <ClCompile Include="debug.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="debug.cpp">
+    <ClCompile Include="snow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="quad.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="xxd.exe" />
     <None Include="shader_compile.bat" />
+    <None Include="quad.frag">
+      <Filter>Fragment Shader</Filter>
+    </None>
+    <None Include="standard.vert">
+      <Filter>Vertex Shader</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="main.frag">
@@ -89,20 +104,20 @@
     <CustomBuild Include="main.vert">
       <Filter>Vertex Shader</Filter>
     </CustomBuild>
-    <CustomBuild Include="quad.frag">
-      <Filter>Fragment Shader</Filter>
-    </CustomBuild>
     <CustomBuild Include="blur.frag">
       <Filter>Fragment Shader</Filter>
-    </CustomBuild>
-    <CustomBuild Include="quad.vert">
-      <Filter>Vertex Shader</Filter>
     </CustomBuild>
     <CustomBuild Include="shadow.vert">
       <Filter>Vertex Shader</Filter>
     </CustomBuild>
     <CustomBuild Include="empty.frag">
       <Filter>Fragment Shader</Filter>
+    </CustomBuild>
+    <CustomBuild Include="snow.frag">
+      <Filter>Fragment Shader</Filter>
+    </CustomBuild>
+    <CustomBuild Include="snow.vert">
+      <Filter>Vertex Shader</Filter>
     </CustomBuild>
   </ItemGroup>
 </Project>

@@ -32,7 +32,9 @@
 #include "chunk.h"
 #include "model.h"
 #include "transform.h"
-
+#include "snow.h"
+#include "quad.h"
+#include "shaders_include.h"
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 void texture(GLuint *handle, GLenum format, int width, int height, GLenum *params);
 enum {BUFFER_FLOAT, BUFFER_DEPTH, BUFFER_COLOR, BUFFER_MONO} trolol;
@@ -55,8 +57,7 @@ struct pprocess
 void pprocess_new(struct pprocess *self, int width, int height, struct shader_program *sp);
 void pprocess_size(struct pprocess *self, int width, int height);
 GLuint pprocess_do(struct pprocess *self, GLuint in_texture);
-void init_quad();
-void draw_quad();
+
 #define NAME(type,id,name) if (GLEW_KHR_debug) {	glObjectLabel(type, id, strlen(name), name);}
 __declspec(align(16)) struct global {
 	mat4 viewMatrix;

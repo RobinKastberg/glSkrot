@@ -96,6 +96,9 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>Dependencies/glew/glew32s.lib;opengl32.lib;kernel32.lib;gdi32.lib;user32.lib</AdditionalDependencies>
     </Link>
+    <CustomBuildStep>
+      <Command>shader_compile</Command>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -127,6 +130,9 @@
       <AdditionalDependencies>Dependencies/glew/glew32s.lib;opengl32.lib;kernel32.lib;gdi32.lib;user32.lib;glu32.lib</AdditionalDependencies>
       <GenerateDebugInformation>false</GenerateDebugInformation>
     </Link>
+    <CustomBuildStep>
+      <Command>shader_compile</Command>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -151,9 +157,11 @@
   <ItemGroup>
     <ClInclude Include="chunk.h" />
     <ClInclude Include="model.h" />
+    <ClInclude Include="quad.h" />
     <ClInclude Include="shader.h" />
     <ClInclude Include="Project1.h" />
     <ClInclude Include="Resource.h" />
+    <ClInclude Include="snow.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="transform.h" />
@@ -164,6 +172,7 @@
     <ClCompile Include="loader.cpp" />
     <ClCompile Include="model.cpp" />
     <ClCompile Include="quad.cpp" />
+    <ClCompile Include="snow.cpp" />
     <ClCompile Include="shader.cpp" />
     <ClCompile Include="superchunk.cpp" />
     <ClCompile Include="transform.cpp" />
@@ -187,7 +196,7 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">shaders.h</Outputs>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkObjects>
     </CustomBuild>
-    <CustomBuild Include="main.vert">
+    <None Include="main.vert">
       <FileType>Document</FileType>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">shader_compile</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">shaders.h</Outputs>
@@ -197,8 +206,8 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">shaders.h</Outputs>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</LinkObjects>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Compiling shaders</Message>
-    </CustomBuild>
-    <CustomBuild Include="quad.frag">
+    </None>
+    <None Include="snow.frag">
       <FileType>Document</FileType>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">shader_compile</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Compiling shaders</Message>
@@ -208,8 +217,8 @@
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Compiling shaders</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">shaders.h</Outputs>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkObjects>
-    </CustomBuild>
-    <CustomBuild Include="quad.vert">
+    </None>
+    <CustomBuild Include="snow.vert">
       <FileType>Document</FileType>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">shader_compile</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Compiling shaders</Message>
@@ -242,7 +251,7 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">shaders.h</Outputs>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkObjects>
     </CustomBuild>
-    <CustomBuild Include="blur.frag">
+    <None Include="blur.frag">
       <FileType>Document</FileType>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">shader_compile</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">shaders.h</Outputs>
@@ -252,8 +261,10 @@
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkObjects>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Compiling shaders</Message>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Compiling shaders</Message>
-    </CustomBuild>
+    </None>
+    <None Include="quad.frag" />
     <None Include="shader_compile.bat" />
+    <None Include="standard.vert" />
     <None Include="xxd.exe" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

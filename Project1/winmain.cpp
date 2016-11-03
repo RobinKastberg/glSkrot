@@ -52,15 +52,18 @@ struct pprocess blur;
 struct pprocess blur2;
 void init()
 {
-	wglSwapIntervalEXT(0);
+	wglSwapIntervalEXT(1);
 	glClearColor(0, 0, 0, 0);
 	glEnable(GL_TEXTURE_2D);
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
+	glEnable(GL_POINT_SPRITE);
+	glEnable(GL_PROGRAM_POINT_SIZE);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	mouse_move(0, 0);
+	init_snow();
 	init_quad();
 	
 	glGenBuffers(1, &uboId);
@@ -82,6 +85,7 @@ void render()
 	glBindBuffer(GL_UNIFORM_BUFFER, uboId);
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(globals), &globals);
 
+	draw_snow();
 	draw_quad();
 }
 
@@ -143,7 +147,6 @@ void __stdcall WinMainCRTStartup() {
 		
 		globals.time += 0.001f*(currentTime - lastUpdate);
 		globals.deltaTime = 0.001f*(currentTime - lastUpdate);
-		printf("%f %f\n", globals.time, globals.deltaTime);
 		lastUpdate = GetTickCount();
 		render();
 		GLenum err;

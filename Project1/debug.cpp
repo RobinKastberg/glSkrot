@@ -13,7 +13,7 @@ void APIENTRY openglCallbackFunction(GLenum source,
 
 void debug_init() 
 {
-	if (glewGetExtension("GL_KHR_debug")) {
+	if (GLEW_VERSION_4_3 || GLEW_KHR_debug) {
 		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 		glDebugMessageCallback(openglCallbackFunction, nullptr);
 		GLuint unusedIds = 0;

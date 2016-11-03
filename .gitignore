@@ -241,3 +241,4 @@ ModelManifest.xml
 # FAKE - F# Make
 .fake/
 /Project1/shaders.h
+/Project1/shaders_include.h

@@ -1,5 +1,6 @@
 #include "stdafx.h"
 
+#include "shaders.h"
 
 const char * const INCLUDE =
 "#version 330 compatibility\n"
