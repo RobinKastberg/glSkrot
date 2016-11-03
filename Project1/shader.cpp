@@ -1,5 +1,6 @@
 #include "stdafx.h"
 
+
 const char * const INCLUDE =
 "#version 330 compatibility\n"
 "#define debug(on)\n"
@@ -12,9 +13,11 @@ const char * const INCLUDE =
 "	vec3 lightPos;"
 "};\n";
 
-void shader_init(struct shader_program *self)
+void shader_init(struct shader_program * self, const char * name)
 {
 	self->program = glCreateProgram();
+	self->name = name;
+	NAME(GL_PROGRAM, self->program, self->name);
 }
 static bool check_compile(GLuint shader, GLenum type)
 {
@@ -35,26 +38,13 @@ static bool check_compile(GLuint shader, GLenum type)
 		get(shader, GL_INFO_LOG_LENGTH, &status);
 		//The maxLength includes the NULL character
 		char *infoLog = (char *)malloc(status);
+		assert(infoLog);
 		getInfo(shader, status, &status, infoLog);
-		CRASH(infoLog);
+		OutputDebugStringA(infoLog);
+		//CRASH(infoLog);
 		free(infoLog);
 		//We don't need the shader anymore.
 		glDeleteShader(shader);
-	}
-	else {
-
-		if (type == GL_LINK_STATUS && GLEW_VERSION_4_1) {
-			glGetProgramiv(shader, GL_PROGRAM_BINARY_LENGTH, &status);
-			char *infoLog = (char *)malloc(status);
-			GLenum bin;
-			glGetProgramBinary(shader, status, &status, &bin, infoLog);
-			FILE *f;
-			volatile int err = fopen_s(&f, "shader.bin", "wb");
-			fwrite(infoLog, 1, status, f);
-			fclose(f);
-			free(infoLog);
-		}
-		
 	}
 	return false;
 }
@@ -71,11 +61,11 @@ void shader_verify(const struct shader_program *self)
 		exit(1);
 	}
 }
-bool shader_source(struct shader_program *self, GLenum type, const unsigned char * const str, int size)
+bool shader_source(struct shader_program *self, GLenum type, const unsigned char * str, int size)
 {
 	GLuint shader = glCreateShader(type);
 	int sz[2] = { strlen((const char *)INCLUDE), size };
-	const char * const ptrs[2] = { (const char *const)INCLUDE, (const char *const)str };
+	char *ptrs[2] = { (char *)INCLUDE, (char *)str };
 	glShaderSource(shader, 2,  (char **)ptrs, sz);
 	glCompileShader(shader);
 	check_compile(shader, GL_COMPILE_STATUS);
@@ -84,10 +74,12 @@ bool shader_source(struct shader_program *self, GLenum type, const unsigned char
 	{
 		OutputDebugStringA("FRAG");
 		self->frag_shader = shader;
+		NAME(GL_FRAGMENT_SHADER, shader, self->name);
 	}
 	else if (type == GL_VERTEX_SHADER) {
 		OutputDebugStringA("VERT");
 		self->vert_shader = shader;
+		NAME(GL_VERTEX_SHADER, shader, self->name);
 	}
 
 	if (self->vert_shader && self->frag_shader)
@@ -95,6 +87,7 @@ bool shader_source(struct shader_program *self, GLenum type, const unsigned char
 		OutputDebugStringA("LINKING...");
 		glLinkProgram(self->program);
 		check_compile(self->program, GL_LINK_STATUS);
+		glUniformBlockBinding(self->program, glGetUniformBlockIndex(self->program, "global"), 0);
 	}
 	return true;
 }

@@ -55,7 +55,9 @@ struct pprocess
 void pprocess_new(struct pprocess *self, int width, int height, struct shader_program *sp);
 void pprocess_size(struct pprocess *self, int width, int height);
 GLuint pprocess_do(struct pprocess *self, GLuint in_texture);
-
+void init_quad();
+void draw_quad();
+#define NAME(type,id,name) if (GLEW_KHR_debug) {	glObjectLabel(type, id, strlen(name), name);}
 struct global {
 	mat4 viewMatrix;
 	mat4 projectionMatrix;
@@ -63,6 +65,8 @@ struct global {
 	vec3 cameraPosition;
 	vec3 lookAt;
 	vec3 lightPos;
+	float time;
+	float deltaTime;
 };
 
 extern struct global globals;
