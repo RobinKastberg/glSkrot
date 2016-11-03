@@ -8,9 +8,11 @@ const char * const INCLUDE =
 "	mat4 viewMatrix;"
 "	mat4 projectionMatrix;"
 "	mat4 lightMatrix;"
-"	vec3 cameraPosition;"
-"	vec3 lookAt;"
-"	vec3 lightPos;"
+"	vec4 cameraPosition;"
+"	vec4 lookAt;"
+"	vec4 lightPos;"
+"	vec4 time;"
+"	vec4 deltaTime;"
 "};\n";
 
 void shader_init(struct shader_program * self, const char * name)
@@ -41,7 +43,7 @@ static bool check_compile(GLuint shader, GLenum type)
 		assert(infoLog);
 		getInfo(shader, status, &status, infoLog);
 		OutputDebugStringA(infoLog);
-		//CRASH(infoLog);
+		exit(0);
 		free(infoLog);
 		//We don't need the shader anymore.
 		glDeleteShader(shader);

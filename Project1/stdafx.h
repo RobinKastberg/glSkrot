@@ -58,18 +58,20 @@ GLuint pprocess_do(struct pprocess *self, GLuint in_texture);
 void init_quad();
 void draw_quad();
 #define NAME(type,id,name) if (GLEW_KHR_debug) {	glObjectLabel(type, id, strlen(name), name);}
-struct global {
+__declspec(align(16)) struct global {
 	mat4 viewMatrix;
 	mat4 projectionMatrix;
 	mat4 lightMatrix;
-	vec3 cameraPosition;
-	vec3 lookAt;
-	vec3 lightPos;
-	float time;
-	float deltaTime;
+	__declspec(align(16)) vec4 cameraPosition;
+	__declspec(align(16)) vec4 lookAt;
+	__declspec(align(16)) vec4 lightPos;
+	__declspec(align(16)) float time;
+	__declspec(align(16)) float deltaTime;
 };
 
 extern struct global globals;
+void debug_init();
+
 
 
 

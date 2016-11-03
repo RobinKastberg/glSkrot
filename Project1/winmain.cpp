@@ -52,7 +52,7 @@ struct pprocess blur;
 struct pprocess blur2;
 void init()
 {
-	wglSwapIntervalEXT(1);
+	wglSwapIntervalEXT(0);
 	glClearColor(0, 0, 0, 0);
 	glEnable(GL_TEXTURE_2D);
 	glEnable(GL_CULL_FACE);
@@ -109,6 +109,7 @@ void __stdcall WinMainCRTStartup() {
 		return;
 	}
 	init();
+	debug_init();
 	ShowWindow(hwnd, nshowcmd);
 	UpdateWindow(hwnd);
 	unsigned int lastTime = GetTickCount();
@@ -142,6 +143,7 @@ void __stdcall WinMainCRTStartup() {
 		
 		globals.time += 0.001f*(currentTime - lastUpdate);
 		globals.deltaTime = 0.001f*(currentTime - lastUpdate);
+		printf("%f %f\n", globals.time, globals.deltaTime);
 		lastUpdate = GetTickCount();
 		render();
 		GLenum err;
