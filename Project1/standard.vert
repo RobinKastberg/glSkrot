@@ -12,13 +12,6 @@ void main(){
 	v_Position = in_Position;
 	v_Position.xyz *= 0.1;
 	v_TexCoord = in_TexCoord;
+	v_Position += texture2DLod(tex, v_TexCoord, 0.0);
 	gl_Position= projectionMatrix * viewMatrix * v_Position;
-
-	vec4 test = texture2DLod(tex, v_TexCoord, 0);
-	
-
-
-	
-	
-	
 }

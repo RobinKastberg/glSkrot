@@ -114,5 +114,6 @@ void draw_quad()
 	glUseProgram(quadp.program);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, to);
+	shader_verify(&quadp);
 	glDrawArrays(GL_QUADS, 0, WIDTH*HEIGHT*4);
 }
