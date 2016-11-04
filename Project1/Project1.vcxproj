@@ -98,6 +98,7 @@
     </Link>
     <CustomBuildStep>
       <Command>shader_compile</Command>
+      <Inputs>*.frag;*.vert;%(Inputs)</Inputs>
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -159,8 +160,6 @@
     <ClInclude Include="model.h" />
     <ClInclude Include="quad.h" />
     <ClInclude Include="shader.h" />
-    <ClInclude Include="Project1.h" />
-    <ClInclude Include="Resource.h" />
     <ClInclude Include="snow.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
@@ -171,6 +170,7 @@
     <ClCompile Include="debug.cpp" />
     <ClCompile Include="loader.cpp" />
     <ClCompile Include="model.cpp" />
+    <ClCompile Include="noise.cpp" />
     <ClCompile Include="quad.cpp" />
     <ClCompile Include="snow.cpp" />
     <ClCompile Include="shader.cpp" />

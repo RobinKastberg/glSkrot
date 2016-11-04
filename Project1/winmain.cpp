@@ -77,7 +77,7 @@ void render()
 {
 	glViewport(0, 0, width, height);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	mat4_perspective(&globals.projectionMatrix, 90, (float)width / height, 0.01, 50);
+	mat4_perspective(&globals.projectionMatrix, 90, (float)width / height, 0.01, 5000);
 	struct vec3 up = vec3_new(0, 0, 1);
 	mat4_lookat(&globals.viewMatrix, (vec3 *)&globals.cameraPosition, (vec3 *)&globals.lookAt, &up);
 

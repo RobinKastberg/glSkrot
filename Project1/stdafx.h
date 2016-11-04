@@ -39,6 +39,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 void texture(GLuint *handle, GLenum format, int width, int height, GLenum *params);
 enum {BUFFER_FLOAT, BUFFER_DEPTH, BUFFER_COLOR, BUFFER_MONO} trolol;
 
+float perlin2d(float x, float y, float freq, int depth);
 
 unsigned short inline hashfunction(register int key);
 void hash_init(struct _hash *h);
