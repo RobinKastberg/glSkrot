@@ -43,8 +43,8 @@ void mat4_debug(struct mat4 *self)
 	char out[100];
 	for (int i = 0; i < 4; i++)
 	{
-		snprintf(out, 100, "%f %f %f %f\n", self->c[4 * i + 0], self->c[4 * i + 1], self->c[4 * i + 2], self->c[4 * i + 3]);
-		OutputDebugStringA(out);
+		//snprintf(out, 100, "%f %f %f %f\n", self->c[4 * i + 0], self->c[4 * i + 1], self->c[4 * i + 2], self->c[4 * i + 3]);
+		//OutputDebugStringA(out);
 	}
 }
 
@@ -70,7 +70,7 @@ void vec3_cross(struct vec3 * __restrict A, struct vec3 * __restrict B, struct v
 struct vec3 vec3_cross(struct vec3 * __restrict A, struct vec3 * __restrict B)
 {
 	struct vec3 C;
-	vec3_cross(&C, A, B);
+	vec3_cross(A, B, &C);
 	return C;
 }
 struct vec3 vec3_new(float a, float b, float c)

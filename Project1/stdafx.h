@@ -8,9 +8,11 @@
 #include "targetver.h"
 
 #define GLEW_STATIC
+#define WIN32_LEAN_AND_MEAN 
+#define _CRT_SECURE_NO_WARNINGS
 #include "Dependencies/glew/glew.h"
 #include "Dependencies/glew/wglew.h"
-#define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
+            // Exclude rarely-used stuff from Windows headers
 // Windows Header Files:
 #include <windows.h>
 
@@ -34,6 +36,8 @@
 #include "transform.h"
 #include "snow.h"
 #include "quad.h"
+#include "hash.h"
+#include "object.h"
 #include "shaders_include.h"
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 void texture(GLuint *handle, GLenum format, int width, int height, GLenum *params);
@@ -73,6 +77,8 @@ __declspec(align(16)) struct global {
 
 extern struct global globals;
 void debug_init();
+float perlin2d(float x, float y, float freq, int depth);
+float perlin3d(float x, float y, float z, float freq, int depth);
 
 
 

@@ -8,6 +8,7 @@
 #define SCY 8
 #define SCZ 8
 
+#include "hash.h"
 
 struct chunk {
 	GLubyte blk[CX][CY][CZ];
@@ -16,7 +17,7 @@ struct chunk {
 	int elements;
 	bool changed;
 	model *m;
-	struct _hash vertex_cache;
+	struct hash vertex_cache;
 
 	chunk();
 

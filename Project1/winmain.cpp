@@ -2,7 +2,6 @@
 //
 
 #include "stdafx.h"
-#include "Project1.h"
 
 #include <windows.h>
 #include <GL/GL.h>
@@ -38,7 +37,7 @@ void mouse_move(int dx, int dy)
 {
 	thetax += ((float)dx)/400.0;
 	thetay -= ((float)dy)/400.0;
-	thetay = max(min(thetay, 3.14/2), -3.14/2);
+	thetay = max(min(thetay, 3.14), -3.14);
 	globals.cameraPosition.x = radius * cos(thetax)*sin(thetay) + globals.lookAt.x;
 	globals.cameraPosition.y = radius * sin(thetax)*sin(thetay) + globals.lookAt.y;
 	globals.cameraPosition.z = radius * cos(thetay) + globals.lookAt.z;
@@ -63,13 +62,17 @@ void init()
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	mouse_move(0, 0);
-	init_snow();
+	//init_snow();
 	init_quad();
-	
+	init_skybox();
 	glGenBuffers(1, &uboId);
 	glBindBuffer(GL_UNIFORM_BUFFER, uboId);
 	glBufferData(GL_UNIFORM_BUFFER, sizeof(globals), &globals, GL_DYNAMIC_DRAW);
 	glBindBufferBase(GL_UNIFORM_BUFFER, 0, uboId);
+
+	globals.lookAt = vec4{ 0,0,1,0 };
+
+
 }
 
 
@@ -85,8 +88,10 @@ void render()
 	glBindBuffer(GL_UNIFORM_BUFFER, uboId);
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(globals), &globals);
 
-	draw_snow();
+	//draw_snow();
+	draw_skybox();
 	draw_quad();
+	
 }
 
 void __stdcall WinMainCRTStartup() {
@@ -272,15 +277,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			projectionRay.z = -1;
 			projectionRay.w = 0;
 			vec4 viewRay = mat4_mul(&inverseView, &projectionRay);
-			printf("%f %f\n", (float)pt.x, (float)pt.y);
-			printf("%f %f\n", (float)2 * pt.x / width - 1, 1 - (float)2 * pt.y / height);
-			printf("%f %f %f\n", viewRay.x, viewRay.y, viewRay.z);
 			float coeff = (1.5-globals.cameraPosition.z) / viewRay.z;
 			float x = globals.cameraPosition.x + coeff*viewRay.x;
 			float y = globals.cameraPosition.y + coeff*viewRay.y;
-
-	
-			printf("%f %f\n", x, y);
 			int minx;
 			int miny;
 			float dist = FLT_MAX;
@@ -298,15 +297,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					}
 				}
 			}
-			printf("%f\n", dist);
 			//if (minx > 1 && minx < 15 && miny > 1 && miny < 15 && !cnk->get(minx, miny, 2)) {
 				//cnk->set(current_x, current_y, 2, 0);
 				//cnk->set(minx, miny, 2, 1);
 				current_x = minx;
 				current_y = miny;
 			//}
-			printf("%d %d\n", minx, miny);
-			printf("===\n");
 			return 0;
 		}
 	case WM_SYSKEYDOWN:

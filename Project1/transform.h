@@ -14,6 +14,8 @@ struct vec4 {
 void mat4_identity(struct mat4 *self);
 void mat4_debug(struct mat4 *self);
 void vec3_normalize(struct vec3 *self);
+struct vec3 vec3_cross(struct vec3 * __restrict A, struct vec3 * __restrict B);
+void vec3_cross(struct vec3 * __restrict A, struct vec3 * __restrict B, struct vec3 * __restrict C);
 void mat4_mul(struct mat4 * __restrict self, struct mat4 * __restrict other);
 struct vec4 mat4_mul(struct mat4 * __restrict self, struct vec4 * __restrict other);
 void mat4_mul(float * __restrict A, float * __restrict B, float * __restrict C);

@@ -1,7 +1,9 @@
 #include "stdafx.h"
 
-#define WIDTH 100
-#define HEIGHT 100
+#define WIDTH 64
+#define HEIGHT 64
+#define TEXTURE_SIZE 512
+#define WIREFRAME false
 
 struct meshData {
 	vec3 vertex;
@@ -9,32 +11,31 @@ struct meshData {
 	vec2 texcoord;
 };
 
-struct meshData data[WIDTH*HEIGHT * 4];
-
+static struct meshData data[(WIDTH)*(HEIGHT)];
+unsigned int indices[WIDTH*HEIGHT * 4];
 static GLuint vbo;
+static GLuint vio;
 static GLuint vao;
 static GLuint ubo;
 static GLuint to;
 static struct shader_program quadp;
 
-static float textureBuffer[512*512];
+static float const quad[] = {
+	-1.0f, -1.0f, 0.0f,
+	0.0f, 0.0f, 1.0f,
+	0.0f, 0.0f,
 
-static float const quad[] = { 
--1.0f, -1.0f, 0.0f,
-0.0f, 0.0f, 1.0f,
-0.0f, 0.0f,
+	1.0f, -1.0f, 0.0f,
+	0.0f, 0.0f, 1.0f,
+	1.0f, 0.0f,
 
-1.0f, -1.0f, 0.0f,
-0.0f, 0.0f, 1.0f,
-1.0f, 0.0f,
+	1.0f, 1.0f, 0.0f,
+	0.0f, 0.0f, 1.0f,
+	1.0f, 1.0f,
 
-1.0f, 1.0f, 0.0f,
-0.0f, 0.0f, 1.0f,
-1.0f, 1.0f,
-
--1.0f, 1.0f, 0.0f,
-0.0f, 0.0f, 1.0f,
-0.0f, 1.0f
+	-1.0f, 1.0f, 0.0f,
+	0.0f, 0.0f, 1.0f,
+	0.0f, 1.0f
 };
 
 void init_quad()
@@ -43,69 +44,73 @@ void init_quad()
 	{
 		for (int j = 0; j < HEIGHT; j++)
 		{
-			memcpy(&data[4 * i*WIDTH + 4 * j], quad, sizeof(quad));
-			for (int k = 0; k < 4; k++)
-			{
-				data[4 * i*WIDTH + 4 * j].vertex.x += 0.5*i;
-				data[4 * i*WIDTH + 4 * j].vertex.y += 0.5*j;
-				data[4 * i*WIDTH + 4 * j].texcoord.x = (float)i/WIDTH;
-				data[4 * i*WIDTH + 4 * j].texcoord.y = (float)j/HEIGHT;
-
-				data[4 * i*WIDTH + 4 * j + 1].vertex.x += 0.5*i;
-				data[4 * i*WIDTH + 4 * j + 1].vertex.y += 0.5*j;
-				data[4 * i*WIDTH + 4 * j + 1].texcoord.x = (float)(i+1) / WIDTH;
-				data[4 * i*WIDTH + 4 * j + 1].texcoord.y = (float)j / HEIGHT;
-
-				data[4 * i*WIDTH + 4 * j + 2].vertex.x += 0.5*i;
-				data[4 * i*WIDTH + 4 * j + 2].vertex.y += 0.5*j;
-				data[4 * i*WIDTH + 4 * j + 2].texcoord.x = (float)(i+1)/WIDTH;
-				data[4 * i*WIDTH + 4 * j + 2].texcoord.y = (float)(j+1)/HEIGHT;
-
-				data[4 * i*WIDTH + 4 * j + 3].vertex.x += 0.5*i;
-				data[4 * i*WIDTH + 4 * j + 3].vertex.y += 0.5*j;
-				data[4 * i*WIDTH + 4 * j + 3].texcoord.x = (float)i/WIDTH;
-				data[4 * i*WIDTH + 4 * j + 3].texcoord.y = (float)(j+1)/HEIGHT;
-				sizeof(quad);
-				sizeof(struct meshData);
-			}
+			data[i*WIDTH + j].vertex.x = (float)j / WIDTH;
+			data[i*WIDTH + j].vertex.y = (float)i / HEIGHT;
+			data[i*WIDTH + j].vertex.z = 0.4*perlin2d((float)j / WIDTH, (float)i / HEIGHT, 1, 8);
 		}
 	}
+
+	for (int i = 0; i < (WIDTH)-1 ; i++)
+	{
+		for (int j = 0; j < (HEIGHT)-1; j++)
+		{
+			float tr = data[(i + 1)*WIDTH + j + 1].vertex.z;
+			float t = data[(i + 1)*WIDTH + j].vertex.z;
+			float tl = data[(i + 1)*WIDTH + j - 1].vertex.z;
+			
+			float l = data[(i )*WIDTH + j - 1].vertex.z;
+			float r = data[(i )*WIDTH + j + 1].vertex.z;
+
+			float bl = data[(i - 1)*WIDTH + j - 1].vertex.z;
+			float b = data[(i - 1)*WIDTH + j ].vertex.z;
+			float br = data[(i - 1)*WIDTH + j + 1].vertex.z;
+			vec3 dx = vec3_new(1.0 / WIDTH, 0.0, data[i*WIDTH + j + 1].vertex.z - data[i*WIDTH + j].vertex.z);
+			vec3 dy = vec3_new(0.0, 1.0 / HEIGHT, data[(i+1)*WIDTH + j].vertex.z - data[(i)*WIDTH + j].vertex.z);
+			vec3 normal;
+			vec3_cross(&dx, &dy, &normal);
+			//vec3 normal = vec3_new(tr + 2 * r + br - (tl + 2 * l + bl), (tl + 2 * t + tr) - (bl + 2 * b + br), 1.0/WIDTH);
+			vec3_normalize(&normal);
+			data[i*WIDTH + j].normal = normal;
+		}
+	}
+
+
+	for (int i = 0; i < WIDTH-1; i++)
+	{
+		for (int j = 0; j < HEIGHT-1; j++)
+		{
+			indices[4*WIDTH*i + 4*j + 0] = WIDTH* i    + j;
+			indices[4*WIDTH*i + 4*j + 1] = WIDTH*(i) + j + 1;
+			indices[4*WIDTH*i + 4*j + 2] = WIDTH*(i+1) + j + 1;
+			indices[4*WIDTH*i + 4*j + 3] = WIDTH*(i+1)     + j;
+		}
+	}
+
 	glGenVertexArrays(1, &vao);
-	glGenBuffers(1, &vbo);
-
-	shader_init(&quadp, "quad");
-	shader_source(&quadp, GL_FRAGMENT_SHADER, quad_frag, quad_frag_len);
-	shader_source(&quadp, GL_VERTEX_SHADER, standard_vert, standard_vert_len);
-
 	glBindVertexArray(vao);
+
+	glGenBuffers(1, &vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(data), data, GL_STATIC_DRAW);
+
+	glGenBuffers(1, &vio);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vio);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, WIDTH*HEIGHT*4*sizeof(int), indices, GL_STATIC_DRAW);
+	
+
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
 	glEnableVertexAttribArray(2);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 32, 0);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 32, (void *)12);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 32, (void *)12);
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 32, (void *)24);
 
-	for (int i = 0; i < WIDTH; i++)
-	{
-		for (int j = 0; j < HEIGHT; j++) {
-			textureBuffer[WIDTH*i + j] = perlin2d((float)i/WIDTH, (float)j/HEIGHT, 10, 4);
-		}
-	}
-	glGenTextures(1, &to);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, to);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	//Linear filter might cause a fallback to software rendering so we are using GL_NEAREST_MIPMAP_NEAREST
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	//Make sure your GPU support mipmaps with floating point textures
-
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, WIDTH, HEIGHT, 0, GL_RED, GL_FLOAT, &textureBuffer[0]);
-
-	glGenerateMipmap(GL_TEXTURE_2D);
+	//glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
+	shader_init(&quadp, "quad");
+	shader_source(&quadp, GL_FRAGMENT_SHADER, quad_frag, quad_frag_len);
+	shader_source(&quadp, GL_VERTEX_SHADER, standard_vert, standard_vert_len);
 	glUseProgram(quadp.program);
-	glUniform1i(glGetUniformLocation(quadp.program, "tex"), 0);
+	glUniform1i(glGetUniformLocation(quadp.program, "tex"), 1);
 }
 
 void draw_quad()
@@ -113,7 +118,21 @@ void draw_quad()
 	glBindVertexArray(vao);
 	glUseProgram(quadp.program);
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, to);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, to);
 	shader_verify(&quadp);
-	glDrawArrays(GL_QUADS, 0, WIDTH*HEIGHT*4);
+	//glDrawArrays(GL_QUADS, 0, WIDTH*HEIGHT * 4);
+	if (WIREFRAME) {
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		glEnable(GL_POLYGON_OFFSET_FILL);
+		glPolygonOffset(5, 5);
+		glLineWidth(2.0);
+		glDrawElements(GL_QUADS, WIDTH*HEIGHT * 4, GL_UNSIGNED_INT, NULL);
+		glClear(GL_COLOR_BUFFER_BIT);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	}
+	glDrawElements(GL_QUADS, WIDTH*HEIGHT * 4, GL_UNSIGNED_INT, NULL);
+
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	glDisable(GL_POLYGON_OFFSET_FILL);
 }

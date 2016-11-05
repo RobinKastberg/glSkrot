@@ -42,15 +42,7 @@ struct model {
 	int vbo_size = 0;
 };
 
-struct _hash_entry {
-	int key;
-	short value;
-};
 
-struct _hash {
-	struct _hash_entry *mem;
-	int size;
-};
 struct edge *edge_new(model *m, struct face *f, int v0i, int v1i);
 void find_twins(std::vector<edge *> edges);
 void draw(struct model *m);
