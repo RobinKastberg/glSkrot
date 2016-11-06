@@ -39,6 +39,7 @@
 #include "hash.h"
 #include "object.h"
 #include "shaders_include.h"
+
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 void texture(GLuint *handle, GLenum format, int width, int height, GLenum *params);
 enum {BUFFER_FLOAT, BUFFER_DEPTH, BUFFER_COLOR, BUFFER_MONO} trolol;
@@ -52,10 +53,12 @@ int hash_get(struct _hash *h, int key);
 
 struct pprocess
 {
+	struct object object;
 	GLuint fbo;
 	GLuint in_texture;
 	GLuint out_texture;
 	struct shader_program *sp;
+	quad q;
 	int width;
 	int height;
 };

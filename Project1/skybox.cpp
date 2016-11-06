@@ -3,12 +3,7 @@
 #define WIDTH 100
 #define HEIGHT 100
 #define TEXTURE_SIZE 512
-struct meshData {
-	vec3 vertex;
-	vec3 normal;
-	vec2 texcoord;
-};
-
+#define NOISE(x,y,z) perlin3d(x,y,z, 3, 4)
 static struct meshData data[WIDTH*HEIGHT * 4];
 
 static GLuint vbo;
@@ -72,7 +67,7 @@ void init_skybox()
 			vec3_normalize(&test);
 			float test2 = perlin3d(1 + test.x, 1 + test.y, 1 + test.z, 10, 4);
 
-			textureFront[2 * TEXTURE_SIZE*i + 2 * j] = perlin3d(test.x, test.y, test.z, 10, 4);
+			textureFront[2 * TEXTURE_SIZE*i + 2 * j] = NOISE(test.x, test.y, test.z);
 			textureFront[2*TEXTURE_SIZE*i + 2*j + 1] = 0.0;
 				//perlin2d((float)i / (TEXTURE_SIZE), (float)j / (TEXTURE_SIZE), 10, 4);
 		}
@@ -86,7 +81,7 @@ void init_skybox()
 			float x = 1;
 			vec3 test = vec3_new(x, y, z);
 			vec3_normalize(&test);
-			textureRight[2 * TEXTURE_SIZE*i + 2 * j] = perlin3d(test.x, test.y, test.z, 10, 4);
+			textureRight[2 * TEXTURE_SIZE*i + 2 * j] = NOISE(test.x, test.y, test.z);
 			textureRight[2 * TEXTURE_SIZE*i + 2 * j + 1] = 0;
 			//perlin2d((float)i / (TEXTURE_SIZE), (float)j / (TEXTURE_SIZE), 10, 4);
 		}
@@ -100,7 +95,7 @@ void init_skybox()
 			float y = -1;
 			vec3 test = vec3_new(x, y, z);
 			vec3_normalize(&test);
-			textureBack[2 * TEXTURE_SIZE*i + 2 * j] = perlin3d(test.x, test.y, test.z, 10, 4);;
+			textureBack[2 * TEXTURE_SIZE*i + 2 * j] = NOISE(test.x, test.y, test.z);
 			textureBack[2 * TEXTURE_SIZE*i + 2 * j + 1] = 0.0;
 			//perlin2d((float)i / (TEXTURE_SIZE), (float)j / (TEXTURE_SIZE), 10, 4);
 		}
@@ -114,7 +109,7 @@ void init_skybox()
 			float z = 2 * ((TEXTURE_SIZE - (float)i) / TEXTURE_SIZE - 0.5);
 			vec3 test = vec3_new(x, y, z);
 			vec3_normalize(&test);
-			textureLeft[2 * TEXTURE_SIZE*i + 2 * j] = perlin3d(test.x, test.y, test.z, 10, 4);
+			textureLeft[2 * TEXTURE_SIZE*i + 2 * j] = NOISE(test.x, test.y, test.z);
 			textureLeft[2 * TEXTURE_SIZE*i + 2 * j + 1] = 0.0;
 			//perlin2d((float)i / (TEXTURE_SIZE), (float)j / (TEXTURE_SIZE), 10, 4);
 		}
@@ -128,7 +123,7 @@ void init_skybox()
 			float z = 1;
 			vec3 test = vec3_new(x, y, z);
 			vec3_normalize(&test);
-			textureUp[2 * TEXTURE_SIZE*i + 2 * j] = perlin3d(test.x, test.y, test.z, 10, 4);
+			textureUp[2 * TEXTURE_SIZE*i + 2 * j] = NOISE(test.x, test.y, test.z);
 			textureUp[2 * TEXTURE_SIZE*i + 2 * j + 1] = 0.0;
 			//perlin2d((float)i / (TEXTURE_SIZE), (float)j / (TEXTURE_SIZE), 10, 4);
 		}
@@ -142,7 +137,7 @@ void init_skybox()
 			float z = -1;
 			vec3 test = vec3_new(x, y, z);
 			vec3_normalize(&test);
-			textureDown[2 * TEXTURE_SIZE*i + 2 * j] = perlin3d(test.x, test.y, test.z, 10, 4);
+			textureDown[2 * TEXTURE_SIZE*i + 2 * j] = NOISE(test.x, test.y, test.z);
 			textureDown[2 * TEXTURE_SIZE*i + 2 * j + 1] = 0.0;
 			//perlin2d((float)i / (TEXTURE_SIZE), (float)j / (TEXTURE_SIZE), 10, 4);
 		}

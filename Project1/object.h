@@ -1,3 +1,5 @@
+#include "stdafx.h"
+#pragma once
 struct property {
 	char *key;
 	enum {NUM, STR} type;

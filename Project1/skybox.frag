@@ -11,9 +11,12 @@ void main(){
 					    vec4(132.0/255.0, 139.0/255.0, 255.0/255.0, 1.0),
 						0.5*(-eyeDirection.z+1)
 						);
-	float newZ = 5*eyeDirection.z;
+	float newZ = 3*eyeDirection.z;	
 	out_Color = (ambient + gradient)/2.0;
-	if(eyeDirection.z > 0.0)
-		out_Color = mix((ambient + gradient)/2.0, vec4(1,1,1,1), texture(tex, vec3(eyeDirection.xy, newZ)).r);
+	vec3 eye = eyeDirection;
+	eye.x = cos(time.x)*eyeDirection.x + sin(time.x)*eyeDirection.z;
+	eye.z = -sin(time.x)*eyeDirection.x+ cos(time.x)*eyeDirection.z;
+	if(texture(tex, eye).r > 0.5)
+		out_Color = mix((ambient + gradient)/2.0, vec4(1,1,1,1), texture(tex, eye).r-0.5);
 	out_Color.a = 1;
 }

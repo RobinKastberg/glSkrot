@@ -2,13 +2,6 @@
 #define HEIGHTMAP_SIZE 256
 #define NORMALMAP_SIZE 256
 
-struct 
-{
-	GLuint fbo;
-	GLuint height_map;
-	GLuint normal_map;
-} loader;
-void draw_quad();
 
 void pprocess_new(struct pprocess *self, int width, int height, struct shader_program *sp)
 {
@@ -19,6 +12,7 @@ void pprocess_new(struct pprocess *self, int width, int height, struct shader_pr
 	self->sp = sp;
 	self->width = width;
 	self->height = height;
+	quad_new(&self->q, 0);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, self->out_texture, 0);
 	glDrawBuffer(GL_COLOR_ATTACHMENT0);
 	glReadBuffer(GL_NONE);
@@ -43,7 +37,7 @@ GLuint pprocess_do(struct pprocess *self, GLuint in_texture)
 		glViewport(0, 0, self->width, self->height);
 		glClearColor(0, 0, 0, 0);
 		glClear(GL_COLOR_BUFFER_BIT);
-		draw_quad();
+		quad_draw(&self->q);
 	}
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	return self->out_texture;
@@ -73,16 +67,5 @@ void texture(GLuint *handle, GLenum format, int width, int height,GLenum *params
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, NULL);
 			break;
 	}
-	
-}
-
-void loader_load()
-{
-	glGenFramebuffers(1, &loader.fbo);
-	glGenTextures(2, &loader.height_map);
-
-	
-	texture(&loader.normal_map, BUFFER_MONO,  HEIGHTMAP_SIZE, HEIGHTMAP_SIZE, 0);
-	texture(&loader.height_map, BUFFER_COLOR, NORMALMAP_SIZE, NORMALMAP_SIZE, 0);
 	
 }

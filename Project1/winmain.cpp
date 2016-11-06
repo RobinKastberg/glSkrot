@@ -33,6 +33,9 @@ static superchunk *cnk;
 float thetax = 0;
 float thetay = 3.14159/4;
 float radius = 8.0;
+
+quad q;
+quad q2;
 void mouse_move(int dx, int dy)
 {
 	thetax += ((float)dx)/400.0;
@@ -63,14 +66,20 @@ void init()
 
 	mouse_move(0, 0);
 	//init_snow();
-	init_quad();
+	//init_quad();
+	quad_new(&q, 8);
+	q.lod = 2;
+	quad_new(&q2, 8,1,0);
+	q2.lod = 2;
+
+	q.mesh.wireframe = false;
 	init_skybox();
 	glGenBuffers(1, &uboId);
 	glBindBuffer(GL_UNIFORM_BUFFER, uboId);
 	glBufferData(GL_UNIFORM_BUFFER, sizeof(globals), &globals, GL_DYNAMIC_DRAW);
 	glBindBufferBase(GL_UNIFORM_BUFFER, 0, uboId);
 
-	globals.lookAt = vec4{ 0,0,1,0 };
+	globals.lookAt = vec4{ 5,5,1,0 };
 
 
 }
@@ -90,8 +99,20 @@ void render()
 
 	//draw_snow();
 	draw_skybox();
-	draw_quad();
-	
+
+	q.lod = 16.0/sqrt((globals.cameraPosition.x - 5)*(globals.cameraPosition.x - 5)
+		+ (globals.cameraPosition.y - 5)*(globals.cameraPosition.y - 5)
+		+ (globals.cameraPosition.z - 1)*(globals.cameraPosition.z - 1));
+	q.lod = max(min(q.lod, 8), 0);
+
+	q2.lod = 16.0 / sqrt((globals.cameraPosition.x - 15)*(globals.cameraPosition.x - 15)
+		+ (globals.cameraPosition.y - 5)*(globals.cameraPosition.y - 5)
+		+ (globals.cameraPosition.z - 1)*(globals.cameraPosition.z - 1));
+	q2.lod = max(min(q2.lod, 8), 0);
+
+
+	quad_draw(&q);
+	quad_draw(&q2);
 }
 
 void __stdcall WinMainCRTStartup() {
@@ -140,6 +161,7 @@ void __stdcall WinMainCRTStartup() {
 			OutputDebugStringA(fpsString);
 			nbFrames = 0;
 			lastTime = GetTickCount();
+			
 		}
 		if(PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))           // Is There A Message Waiting?
 		{
@@ -257,9 +279,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			POINT pt;
 			if (GetCursorPos(&pt))
 			{
-				int wnd_x = g_OrigWndPos.x +
+				int wnd_x = 
 					(pt.x - g_OrigCursorPos.x);
-				int wnd_y = g_OrigWndPos.y +
+				int wnd_y =
 					(pt.y - g_OrigCursorPos.y);
 				mouse_move(wnd_x, wnd_y);
 				SetCursorPos(g_OrigCursorPos.x, g_OrigCursorPos.y);
@@ -319,8 +341,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		{
 			RECT rt;
 			GetWindowRect(hWnd, &rt);
-			g_OrigWndPos.x = rt.left;
-			g_OrigWndPos.y = rt.top;
 			g_MovingMainWnd = true;
 			SetCapture(hWnd);
 			SetCursor(LoadCursor(NULL, NULL));
