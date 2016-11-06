@@ -34,8 +34,7 @@ float thetax = 0;
 float thetay = 3.14159/4;
 float radius = 8.0;
 
-quad q;
-quad q2;
+quad q[25];
 void mouse_move(int dx, int dy)
 {
 	thetax += ((float)dx)/400.0;
@@ -67,12 +66,27 @@ void init()
 	mouse_move(0, 0);
 	//init_snow();
 	//init_quad();
-	quad_new(&q, 7);
-	q.lod = 7;
-	quad_new(&q2, 7,1,0);
-	q2.lod = 7;
 
-	q.mesh.wireframe = false;
+	for (int i = 0; i < 5; i++)
+	{
+		for (int j = 0; j < 5; j++) 
+		{
+			quad_new(&q[5*i+j], 7, i, j);
+			q[5 * i + j].lod = 5;
+
+		}
+	}
+
+	for (int i = 2; i < 4; i++)
+	{
+		for (int j = 2; j < 4; j++)
+		{
+			q[5 * i + j].lod = 6;
+
+		}
+	}
+
+	q[13].lod = 7;
 	init_skybox();
 	glGenBuffers(1, &uboGlobals);
 	glBindBuffer(GL_UNIFORM_BUFFER, uboGlobals);
@@ -84,7 +98,7 @@ void init()
 	glBufferData(GL_UNIFORM_BUFFER, sizeof(models), &models, GL_DYNAMIC_DRAW);
 	glBindBufferBase(GL_UNIFORM_BUFFER, 1, uboModels);
 
-	globals.lookAt = vec4{ 5,5,1,0 };
+	globals.lookAt = vec4{ 2.5,2.5,1,0 };
 
 
 }
@@ -106,9 +120,11 @@ void render()
 
 	//draw_snow();
 	draw_skybox();
+	for (int i = 0; i < 25; i++)
+	{
+		quad_draw(q + i);
+	}
 
-	quad_draw(&q);
-	quad_draw(&q2);
 }
 
 void __stdcall WinMainCRTStartup() {
