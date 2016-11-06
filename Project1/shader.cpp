@@ -14,7 +14,11 @@ const char * const INCLUDE =
 "	vec4 lightPos;"
 "	vec4 time;"
 "	vec4 deltaTime;"
-"};\n";
+"};\n"
+"layout(std140) uniform model {"
+"	mat4 modelMatrix;"
+"} perModel[128];\n"
+"uniform int currentModel;\n";
 
 void shader_init(struct shader_program * self, const char * name)
 {
@@ -91,6 +95,7 @@ bool shader_source(struct shader_program *self, GLenum type, const unsigned char
 		glLinkProgram(self->program);
 		check_compile(self->program, GL_LINK_STATUS);
 		glUniformBlockBinding(self->program, glGetUniformBlockIndex(self->program, "global"), 0);
+		glUniformBlockBinding(self->program, glGetUniformBlockIndex(self->program, "model"), 1);
 	}
 	return true;
 }

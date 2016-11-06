@@ -101,6 +101,14 @@ void mat4_perspective(struct mat4 * __restrict self, float fov, float aspect, fl
 	self->c[8] = 0; self->c[9] = 0; self->c[10] = (nr + fr) / (nr - fr); self->c[11] = -1;
 	self->c[12] = 0; self->c[13] = 0; self->c[14] = 2 * fr*nr / (nr - fr); self->c[15] = 0.0f;
 }
+
+void mat4_scale(struct mat4 * __restrict self, float scale)
+{
+	self->c[0] = scale; self->c[1] = 0; self->c[2] = 0; self->c[3] = 0.0f;
+	self->c[4] = 0; self->c[5] = scale; self->c[6] = 0; self->c[7] = 0.0f;
+	self->c[8] = 0; self->c[9] = 0; self->c[10] = scale; self->c[11] = 0;
+	self->c[12] = 0; self->c[13] = 0; self->c[14] = 0; self->c[15] = 1.0f;
+}
 void mat4_lookat(struct mat4 * __restrict self, struct vec3 * __restrict pos, struct vec3 * __restrict lookat, struct vec3 * __restrict up)
 {
 	struct vec3 zaxis = { pos->x - lookat->x,

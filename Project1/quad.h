@@ -15,6 +15,8 @@ struct mesh {
 	GLuint to;
 	struct shader_program sp;
 	struct meshData *data;
+	struct perModel *model;
+	unsigned int uniformIndex;
 	unsigned int numVerts;
 	unsigned int *indices;
 	unsigned int numIndices;

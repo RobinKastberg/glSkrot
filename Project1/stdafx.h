@@ -77,8 +77,14 @@ __declspec(align(16)) struct global {
 	__declspec(align(16)) float time;
 	__declspec(align(16)) float deltaTime;
 };
+__declspec(align(16)) struct perModel {
+	mat4 modelMatrix;
+};
 
 extern struct global globals;
+#define MAX_MODELS 128
+extern struct perModel models[MAX_MODELS];
+extern int freePerModel;
 void debug_init();
 float perlin2d(float x, float y, float freq, int depth);
 float perlin3d(float x, float y, float z, float freq, int depth);

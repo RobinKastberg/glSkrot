@@ -25,7 +25,7 @@ struct shader_program shadowp;
 struct shader_program blurp;
 static GLuint m_vaoID[2];
 static GLuint m_vboID[3];
-static GLuint uboId;
+static GLuint uboGlobals, uboModels;
 static GLuint fbos[2];
 static GLuint texs[MRTS+2];
 static superchunk *cnk;
@@ -74,10 +74,15 @@ void init()
 
 	q.mesh.wireframe = false;
 	init_skybox();
-	glGenBuffers(1, &uboId);
-	glBindBuffer(GL_UNIFORM_BUFFER, uboId);
+	glGenBuffers(1, &uboGlobals);
+	glBindBuffer(GL_UNIFORM_BUFFER, uboGlobals);
 	glBufferData(GL_UNIFORM_BUFFER, sizeof(globals), &globals, GL_DYNAMIC_DRAW);
-	glBindBufferBase(GL_UNIFORM_BUFFER, 0, uboId);
+	glBindBufferBase(GL_UNIFORM_BUFFER, 0, uboGlobals);
+
+	glGenBuffers(1, &uboModels);
+	glBindBuffer(GL_UNIFORM_BUFFER, uboModels);
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(models), &models, GL_DYNAMIC_DRAW);
+	glBindBufferBase(GL_UNIFORM_BUFFER, 1, uboModels);
 
 	globals.lookAt = vec4{ 5,5,1,0 };
 
@@ -94,8 +99,10 @@ void render()
 	mat4_lookat(&globals.viewMatrix, (vec3 *)&globals.cameraPosition, (vec3 *)&globals.lookAt, &up);
 
 
-	glBindBuffer(GL_UNIFORM_BUFFER, uboId);
+	glBindBuffer(GL_UNIFORM_BUFFER, uboGlobals);
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(globals), &globals);
+	glBindBuffer(GL_UNIFORM_BUFFER, uboModels);
+	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(models), &models);
 
 	//draw_snow();
 	draw_skybox();

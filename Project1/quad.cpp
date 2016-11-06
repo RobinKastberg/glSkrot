@@ -4,6 +4,10 @@
 #define WIREFRAME false
 #define POW2(x) (1 << (x))
 
+
+struct perModel models[MAX_MODELS];
+int freePerModel = 0;
+
 void mesh_new(struct mesh *self, unsigned int numVerts, unsigned int numIndices)
 {
 	glGenVertexArrays(1, &self->vao);
@@ -13,6 +17,8 @@ void mesh_new(struct mesh *self, unsigned int numVerts, unsigned int numIndices)
 	self->numVerts = numVerts;
 	self->numIndices = numIndices;
 	self->indices = (unsigned int *)malloc(sizeof(unsigned int)*numIndices);
+	self->uniformIndex = freePerModel++;
+	mat4_identity(&models[self->uniformIndex].modelMatrix);
 }
 void mesh_prepare(struct mesh *self)
 {
@@ -79,7 +85,7 @@ void lod(struct quad *self, int x, int y, int size, int l)
 		lod(self, size / 2, size / 2, size / 2, l + 1);
 	}*/
 }
-#define NOISE(x,y) 0.05*perlin2d(xoff + (float)(x) /(self->width-1),yoff + (float)(y) / (self->height-1), 8, 10)
+#define NOISE(x,y) 0.3*perlin2d(xoff + (float)(x) /(self->width-1),yoff + (float)(y) / (self->height-1), 8, 10)
 
 void quad_new(struct quad *self, unsigned int max_lod, float xoff , float yoff )
 {
@@ -139,6 +145,7 @@ void quad_draw(struct quad *self)
 {
 	glBindVertexArray(self->mesh.vao);
 	glUseProgram(self->mesh.sp.program);
+	glUniform1i(glGetUniformLocation(self->mesh.sp.program, "currentModel"), self->mesh.uniformIndex);
 	shader_verify(&self->mesh.sp);
 	//glDrawArrays(GL_QUADS, 0, WIDTH*HEIGHT * 4);
 	if (self->mesh.wireframe) {

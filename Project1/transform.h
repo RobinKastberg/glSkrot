@@ -25,3 +25,4 @@ struct vec3 vec3_new(float a, float b, float c);
 void mat4_perspective(struct mat4 * __restrict self, float fov, float aspect, float nr, float fr);
 void mat4_ortho(struct mat4 * __restrict self, float w, float h, float nr, float fr);
 void mat4_inverse(const float * __restrict m, float * __restrict invOut);
+void mat4_scale(struct mat4 * __restrict self, float scale);
