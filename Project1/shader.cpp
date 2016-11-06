@@ -15,11 +15,8 @@ const char * const INCLUDE =
 "	vec4 time;"
 "	vec4 deltaTime;"
 "};\n"
-"struct perModel {"
-"	mat4 modelMatrix;"
-"} p;"
 "layout(std140) uniform model {"
-"	perModel instance[128];"
+"	mat4 modelMatrix[128];"
 "};\n"
 "uniform int currentModel;\n";
 
