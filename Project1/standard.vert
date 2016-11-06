@@ -10,11 +10,10 @@ out vec2 v_TexCoord;
 
 
 void main(){
-	mat4 modelMatrix = perModel[currentModel].modelMatrix;
-	mat3 normalMatrix = inverse(transpose(mat3(viewMatrix * modelMatrix)));
+	mat3 normalMatrix = inverse(transpose(mat3(viewMatrix * modelMatrix[currentModel])));
 	v_Position = in_Position;
 	v_TexCoord = in_Position.xy;
 	v_modelNormal = in_Normal;
 	v_eyeNormal = normalMatrix * normalize(in_Normal);
-	gl_Position= projectionMatrix * viewMatrix * modelMatrix * v_Position;
+	gl_Position= projectionMatrix * viewMatrix * modelMatrix[currentModel] * v_Position;
 }

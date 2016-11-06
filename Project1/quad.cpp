@@ -18,7 +18,7 @@ void mesh_new(struct mesh *self, unsigned int numVerts, unsigned int numIndices)
 	self->numIndices = numIndices;
 	self->indices = (unsigned int *)malloc(sizeof(unsigned int)*numIndices);
 	self->uniformIndex = freePerModel++;
-	mat4_identity(&models[self->uniformIndex].modelMatrix);
+	mat4_scale(&models[self->uniformIndex].modelMatrix, 10.0);
 }
 void mesh_prepare(struct mesh *self)
 {
@@ -164,16 +164,7 @@ void quad_draw(struct quad *self)
 
 		int numElements = 4 << 2 * ((int)self->lod);
 		int offset = 4 * ((4 << 2*((int)self->lod-1)) - 1) / 3;
-		glPushAttrib(GL_COLOR_BUFFER_BIT);
 		glDrawElements(GL_QUADS, numElements, GL_UNSIGNED_INT, (void *)(offset * sizeof(int)));
-		if (self->lod < self->max_lod) {
-			int numElements = 4 << 2 * ((int)self->lod+1);
-			int offset = 4 * ((4 << 2 * ((int)self->lod)) - 1) / 3;
-			//glBlendColor(0, 0, 0, fmod(self->lod, 1.0f));
-			//glBlendFunc(GL_CONSTANT_ALPHA, GL_ONE_MINUS_CONSTANT_ALPHA);
-			glDrawElements(GL_QUADS, numElements, GL_UNSIGNED_INT, (void *)(offset * sizeof(int)));
-		}
-		glPopAttrib();
 		//4 * ((4 << max_lod + 1) - 1) / 3
 		//GLuint query;
 		//glGenQueries(1, &query);

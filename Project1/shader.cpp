@@ -16,8 +16,8 @@ const char * const INCLUDE =
 "	vec4 deltaTime;"
 "};\n"
 "layout(std140) uniform model {"
-"	mat4 modelMatrix;"
-"} perModel[128];\n"
+"	mat4 modelMatrix[128];"
+"};\n"
 "uniform int currentModel;\n";
 
 void shader_init(struct shader_program * self, const char * name)

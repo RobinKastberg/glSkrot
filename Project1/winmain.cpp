@@ -67,10 +67,10 @@ void init()
 	mouse_move(0, 0);
 	//init_snow();
 	//init_quad();
-	quad_new(&q, 8);
-	q.lod = 2;
-	quad_new(&q2, 8,1,0);
-	q2.lod = 2;
+	quad_new(&q, 7);
+	q.lod = 7;
+	quad_new(&q2, 7,1,0);
+	q2.lod = 7;
 
 	q.mesh.wireframe = false;
 	init_skybox();
@@ -106,17 +106,6 @@ void render()
 
 	//draw_snow();
 	draw_skybox();
-
-	q.lod = 16.0/sqrt((globals.cameraPosition.x - 5)*(globals.cameraPosition.x - 5)
-		+ (globals.cameraPosition.y - 5)*(globals.cameraPosition.y - 5)
-		+ (globals.cameraPosition.z - 1)*(globals.cameraPosition.z - 1));
-	q.lod = max(min(q.lod, 8), 0);
-
-	q2.lod = 16.0 / sqrt((globals.cameraPosition.x - 15)*(globals.cameraPosition.x - 15)
-		+ (globals.cameraPosition.y - 5)*(globals.cameraPosition.y - 5)
-		+ (globals.cameraPosition.z - 1)*(globals.cameraPosition.z - 1));
-	q2.lod = max(min(q2.lod, 8), 0);
-
 
 	quad_draw(&q);
 	quad_draw(&q2);
