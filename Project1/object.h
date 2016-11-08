@@ -15,6 +15,7 @@ struct object {
 	struct property first;
 };
 
-void object_new(object *self, char *name);
-void object_set_int(object *self, char *key, int value);
+void object_new(object *self, const char *name);
+void object_set_int(object *self, const char *key, int value);
+int object_get_int(object *self, const char *key);
 void object_delete(object *self);

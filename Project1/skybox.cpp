@@ -173,15 +173,14 @@ void init_skybox()
 
 	glGenerateMipmap(GL_TEXTURE_2D);
 
-	
-	glUseProgram(skyboxp.program);
+	shader_use(&skyboxp);
 	glUniform1i(glGetUniformLocation(skyboxp.program, "tex"), 0);
 }
 
 void draw_skybox()
 {
 	glBindVertexArray(vao);
-	glUseProgram(skyboxp.program);
+	shader_use(&skyboxp);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, to);
 	shader_verify(&skyboxp);

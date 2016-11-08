@@ -1,6 +1,6 @@
 #include "stdafx.h"
 char *  NAME = "name";
-void object_new(object *self, char *name)
+void object_new(object *self, const char *name)
 {
 
 
@@ -29,7 +29,7 @@ void object_delete(object *self)
 	} while (ptr != NULL);
 	free(ptr);
 }
-void object_set_int(object *self, char *key, int value)
+void object_set_int(object *self, const char *key, int value)
 {
 	char *newString = (char *)malloc(strlen(key)+1);
 	strcpy(newString, key);
@@ -40,4 +40,18 @@ void object_set_int(object *self, char *key, int value)
 	ptr->next->value.num = value;
 	ptr->next->type = ptr->next->NUM;
 	ptr->next->next = NULL;
+}
+
+int object_get_int(object *self, const char *key)
+{
+	property *ptr = &self->first;
+	while (ptr->next != NULL) {
+		if (strcmp(key, ptr->key) == 0)
+		{
+			assert(ptr->type == ptr->NUM);
+			return ptr->value.num;
+		}
+		ptr = ptr->next;
+	}
+	return 0;
 }

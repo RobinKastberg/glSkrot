@@ -144,7 +144,7 @@ void quad_new(struct quad *self, unsigned int max_lod, float xoff , float yoff )
 void quad_draw(struct quad *self)
 {
 	glBindVertexArray(self->mesh.vao);
-	glUseProgram(self->mesh.sp.program);
+	shader_use(&self->mesh.sp);
 	glUniform1i(glGetUniformLocation(self->mesh.sp.program, "currentModel"), self->mesh.uniformIndex);
 	shader_verify(&self->mesh.sp);
 	//glDrawArrays(GL_QUADS, 0, WIDTH*HEIGHT * 4);
