@@ -55,8 +55,10 @@ void main()
 						);
 
 	vec3 ray = vec3(2*v_TexCoord.xy-1,-1);
-	ray.y -= 0.4;
-	vec3 pos = vec3(0,1,1);
+	//ray.y -= 0.4;
+	//vec3 pos = vec3(0,1,1);
+	vec3 pos = cameraPosition.xyz;
+	//vec3 ray = eyeDirection.xyz;
     // For each iteration, we read from our noise function the density of our current position, and adds it to this density variable.
 	float density = 0;
     int _Iterations = 20;
@@ -66,11 +68,11 @@ void main()
     for(int i = 0; i < _Iterations; ++i)
     {
         vec3 p = pos + ray * t;
-        float d = dist(p); // Distance to sphere of radius 0.5
+        float d = 0.7-texture(tex, p).r; //dist(p); // Distance to sphere of radius 0.5
         if(d < 0.0001)
         {
-            //out_Color = i*vec4(1.0)/20; // Sphere color
-			out_Color.rgb = grad(p); //normalize(p);
+            out_Color = i*vec4(1.0)/20; // Sphere color
+			//out_Color.rgb = vec3(1,1,0); //grad(p); //normalize(p);
 			//out_Color.a = 1;
             return;
         }
