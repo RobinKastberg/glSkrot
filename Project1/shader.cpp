@@ -19,10 +19,23 @@ const char * const INCLUDE =
 "	mat4 modelMatrix[128];"
 "};\n"
 "uniform int currentModel;\n";
-
+static object *shaderCache = NULL;
+static GLuint currentProgram;
 void shader_init(struct shader_program * self, const char * name)
 {
+	if (shaderCache == NULL)
+	{
+		shaderCache = (object *)malloc(sizeof(object));
+		object_new(shaderCache, "shaderCache");
+	}
+	struct shader_program *alreadySelf = (shader_program *)object_get_int(shaderCache, name);
+	if (alreadySelf) {
+		*self = *alreadySelf;
+		return;
+	}
 	self->program = glCreateProgram();
+	self->frag_shader = 0;
+	self->vert_shader = 0;
 	self->name = name;
 	NAME(GL_PROGRAM, self->program, self->name);
 }
@@ -70,6 +83,8 @@ void shader_verify(const struct shader_program *self)
 }
 bool shader_source(struct shader_program *self, GLenum type, const unsigned char * str, int size)
 {
+	if (self->vert_shader && self->frag_shader)
+		return true;
 	GLuint shader = glCreateShader(type);
 	int sz[2] = { strlen((const char *)INCLUDE), size };
 	char *ptrs[2] = { (char *)INCLUDE, (char *)str };
@@ -77,7 +92,7 @@ bool shader_source(struct shader_program *self, GLenum type, const unsigned char
 	glCompileShader(shader);
 	check_compile(shader, GL_COMPILE_STATUS);
 	glAttachShader(self->program, shader);
-	if (type == GL_FRAGMENT_SHADER)
+	if (type == GL_FRAGMENT_SHADER && !self->frag_shader)
 	{
 		OutputDebugStringA("FRAG");
 		self->frag_shader = shader;
@@ -106,6 +121,13 @@ bool shader_source(struct shader_program *self, GLenum type, const unsigned char
 		check_compile(self->program, GL_LINK_STATUS);
 		glUniformBlockBinding(self->program, glGetUniformBlockIndex(self->program, "global"), 0);
 		glUniformBlockBinding(self->program, glGetUniformBlockIndex(self->program, "model"), 1);
+		object_set_int(shaderCache, self->name, (int)self);
 	}
 	return true;
+}
+void shader_use(const struct shader_program *self)
+{
+	if (currentProgram != self->program)
+		glUseProgram(self->program);
+	currentProgram = self->program;
 }

@@ -32,7 +32,7 @@ GLuint pprocess_do(struct pprocess *self, GLuint in_texture)
 	{
 		glActiveTexture(GL_TEXTURE10);
 		glBindTexture(GL_TEXTURE_2D, in_texture);
-		glUseProgram(self->sp->program);
+		shader_use(self->sp);
 		glUniform1i(glGetUniformLocation(self->sp->program, "pprocess_in"), 10);
 		glViewport(0, 0, self->width, self->height);
 		glClearColor(0, 0, 0, 0);

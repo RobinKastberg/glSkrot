@@ -60,7 +60,7 @@ void init_snow()
 void draw_snow()
 {
 	glBindVertexArray(vao[out_vbo]);
-	glUseProgram(quadp.program);
+	shader_use(&quadp);
 	glBindBuffer(GL_TRANSFORM_FEEDBACK_BUFFER, vbo[1 - out_vbo]); // TODO: Why does this make it go faster?
 	glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, vbo[1 - out_vbo]);
 	glBeginTransformFeedback(GL_POINTS);
