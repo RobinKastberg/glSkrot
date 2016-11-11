@@ -88,6 +88,16 @@ bool shader_source(struct shader_program *self, GLenum type, const unsigned char
 		self->vert_shader = shader;
 		NAME(GL_VERTEX_SHADER, shader, self->name);
 	}
+	else if (type == GL_TESS_CONTROL_SHADER) {
+		OutputDebugStringA("TESC");
+		self->tesc_shader = shader;
+		NAME(GL_TESS_CONTROL_SHADER, shader, self->name);
+	}
+	else if (type == GL_TESS_EVALUATION_SHADER) {
+		OutputDebugStringA("TESE");
+		self->tese_shader = shader;
+		NAME(GL_TESS_EVALUATION_SHADER, shader, self->name);
+	}
 
 	if (self->vert_shader && self->frag_shader)
 	{

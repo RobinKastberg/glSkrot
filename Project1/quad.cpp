@@ -164,7 +164,8 @@ void quad_draw(struct quad *self)
 
 		int numElements = 4 << 2 * ((int)self->lod);
 		int offset = 4 * ((4 << 2*((int)self->lod-1)) - 1) / 3;
-		glDrawElements(GL_QUADS, numElements, GL_UNSIGNED_INT, (void *)(offset * sizeof(int)));
+		glPatchParameteri(GL_PATCH_VERTICES, 4);
+		glDrawElements(GL_PATCHES, numElements, GL_UNSIGNED_INT, (void *)(offset * sizeof(int)));
 		//4 * ((4 << max_lod + 1) - 1) / 3
 		//GLuint query;
 		//glGenQueries(1, &query);

@@ -4,6 +4,8 @@ struct shader_program {
 	GLuint program = 0;
 	GLuint frag_shader = 0;
 	GLuint vert_shader = 0;
+	GLuint tesc_shader = 0;
+	GLuint tese_shader = 0;
 	const char * name;
 };
 

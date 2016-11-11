@@ -286,6 +286,8 @@
     <None Include="skybox.frag" />
     <None Include="shader_compile.bat" />
     <None Include="skybox.vert" />
+    <None Include="standard.tesc" />
+    <None Include="standard.tese" />
     <None Include="standard.vert" />
     <None Include="xxd.exe" />
   </ItemGroup>
