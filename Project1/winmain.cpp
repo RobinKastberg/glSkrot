@@ -33,8 +33,8 @@ static superchunk *cnk;
 float thetax = 0;
 float thetay = 3.14159/4;
 float radius = 8.0;
-
-quad q[25];
+static unsigned int animation_step = 0;
+terrain q[25];
 void mouse_move(int dx, int dy)
 {
 	thetax += ((float)dx)/400.0;
@@ -51,6 +51,8 @@ void mouse_move(int dx, int dy)
 HINSTANCE hInstance;
 struct pprocess blur;
 struct pprocess blur2;
+struct surface s;
+struct surface s3;
 void init()
 {
 	wglSwapIntervalEXT(0);
@@ -71,7 +73,7 @@ void init()
 	{
 		for (int j = 0; j < 5; j++) 
 		{
-			quad_new(&q[5 * i + j], 5, i, j);
+			terrain_new(&q[5 * i + j], 5, i, j);
 			q[5 * i + j].lod = 5;
 
 		}
@@ -86,7 +88,36 @@ void init()
 		}
 	}
 
-	q[13].lod = 7;
+	q[13].lod = 5;
+	surface_new(&s, 100);
+	s.p[0] = vec3{ 0,0,0 };
+	s.p[1] = vec3{ 1,0,0 };
+	s.p[2] = vec3{ 2,0,0 };
+
+	s.p[3] = vec3{ 0,1,1 };
+	s.p[4] = vec3{ 1,1,2 };
+	s.p[5] = vec3{ 2,1,1 };
+
+	s.p[6] = vec3{ 0,2,0 };
+	s.p[7] = vec3{ 1,2,1 };
+	s.p[8] = vec3{ 2,2,0 };
+	s.mesh.wireframe = true;
+
+
+	surface_new(&s3, 100);
+	s3.p[0] = vec3{ 0,0,0 };
+	s3.p[1] = vec3{ 0,1,1 };
+	s3.p[2] = vec3{ 0,2,0 };
+
+	s3.p[3] = vec3{ -1,0,0 };
+	s3.p[4] = vec3{ -1,1,0 };
+	s3.p[5] = vec3{ -1,2,-1 };
+
+	s3.p[6] = vec3{ -2,0,0 };
+	s3.p[7] = vec3{ -2,1,0 };
+	s3.p[8] = vec3{ -2,2,0 };
+	s3.mesh.wireframe = true;
+
 	init_skybox();
 	glGenBuffers(1, &uboGlobals);
 	glBindBuffer(GL_UNIFORM_BUFFER, uboGlobals);
@@ -98,7 +129,7 @@ void init()
 	glBufferData(GL_UNIFORM_BUFFER, sizeof(models), &models, GL_DYNAMIC_DRAW);
 	glBindBufferBase(GL_UNIFORM_BUFFER, 1, uboModels);
 
-	globals.lookAt = vec4{ 2.5,2.5,1,0 };
+
 	globals.lightPos = vec4{ 2.5,2.5,5,0 };
 
 }
@@ -110,6 +141,10 @@ void render()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	mat4_perspective(&globals.projectionMatrix, 90, (float)width / height, 0.01, 5000);
 	struct vec3 up = vec3_new(0, 0, 1);
+	//vec3 positionCurve = curve_get_position(&c, fmod(globals.time, 1.0f));
+	//globals.lookAt = vec4{ positionCurve.x,positionCurve.y,positionCurve.z,1 };
+
+
 	mat4_lookat(&globals.viewMatrix, (vec3 *)&globals.cameraPosition, (vec3 *)&globals.lookAt, &up);
 
 
@@ -119,12 +154,19 @@ void render()
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(models), &models);
 
 	//draw_snow();
-	draw_skybox();
+	s.steps = animation_step % 100;
+	surface_prepare(&s);
+	surface_draw(&s);
+
+	s3.steps = animation_step % 100;
+	surface_prepare(&s3);
+	surface_draw(&s3);
+
 	for (int i = 0; i < 25; i++)
 	{
-	//	quad_draw(q + i);
+		terrain_draw(q + i);
 	}
-
+	draw_skybox();
 }
 
 void __stdcall WinMainCRTStartup() {
@@ -175,7 +217,7 @@ void __stdcall WinMainCRTStartup() {
 			OutputDebugStringA(fpsString);
 			nbFrames = 0;
 			lastTime = GetTickCount();
-			
+			animation_step++;
 		}
 		if(PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))           // Is There A Message Waiting?
 		{

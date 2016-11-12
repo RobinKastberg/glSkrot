@@ -99,9 +99,10 @@ bool shader_source(struct shader_program *self, GLenum type, const unsigned char
 	glCompileShader(shader);
 	check_compile(shader, GL_COMPILE_STATUS);
 	glAttachShader(self->program, shader);
+	OutputDebugStringA(self->name);
 	if (type == GL_FRAGMENT_SHADER && !self->frag_shader)
 	{
-		OutputDebugStringA("FRAG");
+		OutputDebugStringA("FRAG\n");
 		self->frag_shader = shader;
 		NAME(GL_FRAGMENT_SHADER, shader, self->name);
 	}

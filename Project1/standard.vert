@@ -16,5 +16,5 @@ void main(){
 	v_TexCoord = in_Position.xy;
 	v_modelNormal = in_Normal;
 	v_eyeNormal = normalMatrix * normalize(in_Normal);
-	gl_Position=  worldMatrix * v_Position;
+	gl_Position=  projectionMatrix * viewMatrix * worldMatrix * v_Position;
 }

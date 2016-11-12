@@ -35,11 +35,13 @@
 #include "model.h"
 #include "transform.h"
 #include "snow.h"
-#include "quad.h"
 #include "hash.h"
 #include "object.h"
 #include "shaders_include.h"
-
+#include "mesh.h"
+#include "bezier.h"
+#include "quad.h"
+#include "terrain.h"
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 void texture(GLuint *handle, GLenum format, int width, int height, GLenum *params);
 enum {BUFFER_FLOAT, BUFFER_DEPTH, BUFFER_COLOR, BUFFER_MONO} trolol;
@@ -93,3 +95,4 @@ float perlin3d(float x, float y, float z, float freq, int depth);
 
 
 #define CRASH(str) MessageBoxA(NULL, str, __FILE__, MB_OK | MB_ICONWARNING)
+#define POW2(x) (1 << (x))

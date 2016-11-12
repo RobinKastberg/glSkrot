@@ -13,8 +13,7 @@ const vec3 _SpecColor = vec3(1,1,1);
 const vec3 _LightColor0 = vec3(1,1,0);
 void main() {
 
-	if(stipple && fract(dot(gl_FragCoord.xy, vec2(0.5, 0.5))) < 0.5)
-		discard;
+
 	//out_Color = ambient + diffuse*clamp(dot(normalize(v_eyeNormal), -vec3(-1,0,-1)),0,1);
 	float attenuation = 2/distance(v_Position.xyz, lightPos.xyz);
 	vec3 lightDirection = lightPos.xyz - v_Position.xyz;

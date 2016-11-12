@@ -7,13 +7,7 @@ in vec4 v_Position[];
 out vec4 tc_Position[];
 void main()
 {
- float max_tesselation = 1024;
- float i1 = length(cameraPosition - gl_in[0].gl_Position);
- float i2 = length(cameraPosition - gl_in[1].gl_Position);
- float i3 = length(cameraPosition - gl_in[2].gl_Position);
- float i4 = length(cameraPosition - gl_in[3].gl_Position);
- float dist = min(i1,min(i2,min(i3,i4)));
- max_tesselation /= clamp(exp(dist),1,1024);
+ float max_tesselation = 2;
  gl_TessLevelOuter[0] = max_tesselation;
  gl_TessLevelOuter[1] = max_tesselation;
  gl_TessLevelOuter[2] = max_tesselation;

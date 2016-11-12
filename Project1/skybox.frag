@@ -34,7 +34,7 @@ float cube(in vec3 position, in vec3 center, in float radius)
 }
 float dist(in vec3 position) {
 	
-	return 0.2*texture(tex, position.xyz)+sphere(position, vec3(0,0,0), 1); // -0.1*texture(tex2d, 0.1*position.xy).r;//sphere(mod(position,1)-0.5, vec3(0,0,0), 0.3); //sphere(position, vec3(0,0,0), 0.3);
+	return 0.2*texture(tex, position.xyz).r+sphere(position, vec3(0,0,0), 1); // -0.1*texture(tex2d, 0.1*position.xy).r;//sphere(mod(position,1)-0.5, vec3(0,0,0), 0.3); //sphere(position, vec3(0,0,0), 0.3);
 }
 vec3 grad(in vec3 position)
 {

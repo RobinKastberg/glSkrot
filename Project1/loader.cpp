@@ -12,7 +12,6 @@ void pprocess_new(struct pprocess *self, int width, int height, struct shader_pr
 	self->sp = sp;
 	self->width = width;
 	self->height = height;
-	quad_new(&self->q, 0);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, self->out_texture, 0);
 	glDrawBuffer(GL_COLOR_ATTACHMENT0);
 	glReadBuffer(GL_NONE);
@@ -37,7 +36,7 @@ GLuint pprocess_do(struct pprocess *self, GLuint in_texture)
 		glViewport(0, 0, self->width, self->height);
 		glClearColor(0, 0, 0, 0);
 		glClear(GL_COLOR_BUFFER_BIT);
-		quad_draw(&self->q);
+		draw_quad(self->sp);
 	}
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	return self->out_texture;

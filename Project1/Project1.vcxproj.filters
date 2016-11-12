@@ -42,13 +42,22 @@
     <ClInclude Include="snow.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="quad.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="hash.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="object.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="bezier.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="mesh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="terrain.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="quad.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -89,13 +98,22 @@
     <ClCompile Include="skybox.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="quad.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="hash.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="object.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="bezier.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mesh.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="terrain.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="quad.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -111,14 +129,14 @@
     <None Include="skybox.vert">
       <Filter>Vertex Shader</Filter>
     </None>
-    <None Include="skybox.frag">
-      <Filter>Fragment Shader</Filter>
-    </None>
     <None Include="standard.vert">
       <Filter>Vertex Shader</Filter>
     </None>
     <None Include="standard.tesc" />
     <None Include="standard.tese" />
+    <None Include="standard.frag">
+      <Filter>Fragment Shader</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="main.frag">
@@ -133,10 +151,13 @@
     <CustomBuild Include="snow.vert">
       <Filter>Vertex Shader</Filter>
     </CustomBuild>
-    <CustomBuild Include="quad.frag">
+    <CustomBuild Include="blur.frag">
       <Filter>Fragment Shader</Filter>
     </CustomBuild>
-    <CustomBuild Include="blur.frag">
+    <CustomBuild Include="skybox.frag">
+      <Filter>Fragment Shader</Filter>
+    </CustomBuild>
+    <CustomBuild Include="terrain.frag">
       <Filter>Fragment Shader</Filter>
     </CustomBuild>
   </ItemGroup>

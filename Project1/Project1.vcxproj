@@ -169,11 +169,14 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="bezier.h" />
     <ClInclude Include="chunk.h" />
     <ClInclude Include="hash.h" />
+    <ClInclude Include="mesh.h" />
     <ClInclude Include="model.h" />
     <ClInclude Include="object.h" />
     <ClInclude Include="quad.h" />
+    <ClInclude Include="terrain.h" />
     <ClInclude Include="shader.h" />
     <ClInclude Include="snow.h" />
     <ClInclude Include="stdafx.h" />
@@ -181,14 +184,17 @@
     <ClInclude Include="transform.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="bezier.cpp" />
     <ClCompile Include="chunk.cpp" />
     <ClCompile Include="debug.cpp" />
     <ClCompile Include="hash.cpp" />
     <ClCompile Include="loader.cpp" />
+    <ClCompile Include="mesh.cpp" />
     <ClCompile Include="model.cpp" />
     <ClCompile Include="noise.cpp" />
     <ClCompile Include="object.cpp" />
     <ClCompile Include="quad.cpp" />
+    <ClCompile Include="terrain.cpp" />
     <ClCompile Include="skybox.cpp" />
     <ClCompile Include="snow.cpp" />
     <ClCompile Include="shader.cpp" />
@@ -225,7 +231,7 @@
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</LinkObjects>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Compiling shaders</Message>
     </None>
-    <CustomBuild Include="quad.frag">
+    <CustomBuild Include="terrain.frag">
       <FileType>Document</FileType>
     </CustomBuild>
     <None Include="snow.frag">
@@ -294,6 +300,7 @@
     </CustomBuild>
     <None Include="shader_compile.bat" />
     <None Include="skybox.vert" />
+    <None Include="standard.frag" />
     <None Include="standard.tesc" />
     <None Include="standard.tese" />
     <None Include="standard.vert" />
