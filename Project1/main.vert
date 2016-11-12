@@ -8,7 +8,7 @@ out vec3 normal;
 uniform float time;
 
 
-void main(void)
+void main()
 {
 	vec4 tmp = in_Position;
 	pos = in_Position.xyz + dxyz;
@@ -16,7 +16,7 @@ void main(void)
 	//pos.x = (50-pos.z)*cos(2*3.14*pos.x/256);
 	//pos.z = (50-pos.z)*sin(2*3.14*pos.x/256);
 	//pos.y = 50*pos.y/256;
-	gl_Position = projectionMatrix * viewMatrix * vec4(pos,1);
+	gl_Position = vec4(pos,1);
 	
 
 

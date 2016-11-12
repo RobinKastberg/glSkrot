@@ -11,7 +11,7 @@ const float density = 100;
 const float LOG2 = 1.442695;
 const vec4 fogColor = vec4(1,1,1,1);
 
-void main(void)
+void main()
 {
 vec2 coord33 = gl_PointCoord - gl_FragCoord.xy;  //from [0,1] to [-0.5,0.5]
                  //outside of circle radius?

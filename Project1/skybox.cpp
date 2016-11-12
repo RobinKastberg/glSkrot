@@ -3,7 +3,7 @@
 #define WIDTH 100
 #define HEIGHT 100
 #define TEXTURE_SIZE 512
-#define NOISE(x,y,z) perlin3d(x,y,z, 3, 4)
+#define NOISE(x,y,z) perlin3d(x,y,z, 9, 4)
 static struct meshData data[WIDTH*HEIGHT * 4];
 
 static GLuint vbo;

@@ -53,7 +53,7 @@ struct pprocess blur;
 struct pprocess blur2;
 void init()
 {
-	wglSwapIntervalEXT(1);
+	wglSwapIntervalEXT(0);
 	glClearColor(0, 0, 0, 0);
 	glEnable(GL_TEXTURE_2D);
 	glEnable(GL_CULL_FACE);
@@ -69,9 +69,9 @@ void init()
 
 	for (int i = 0; i < 5; i++)
 	{
-		for (int j = 0; j < 5; j++) 
+		for (int j = 0; j < 5; j++)
 		{
-			quad_new(&q[5*i+j], 7, i, j);
+			quad_new(&q[5 * i + j], 5, i, j);
 			q[5 * i + j].lod = 5;
 
 		}
@@ -81,12 +81,12 @@ void init()
 	{
 		for (int j = 2; j < 4; j++)
 		{
-			q[5 * i + j].lod = 6;
+			q[5 * i + j].lod = 5;
 
 		}
 	}
 
-	q[13].lod = 7;
+	q[13].lod = 5;
 	init_skybox();
 	glGenBuffers(1, &uboGlobals);
 	glBindBuffer(GL_UNIFORM_BUFFER, uboGlobals);
@@ -99,7 +99,7 @@ void init()
 	glBindBufferBase(GL_UNIFORM_BUFFER, 1, uboModels);
 
 	globals.lookAt = vec4{ 2.5,2.5,1,0 };
-
+	globals.lightPos = vec4{ 2.5,2.5,5,0 };
 
 }
 
@@ -160,7 +160,9 @@ void __stdcall WinMainCRTStartup() {
 	char fpsString[50];
 
 	SetCapture(hwnd);
-
+	GLuint query;
+	GLuint tris;
+	glGenQueries(1, &query);
 	for(;;)
 	{
 		// Measure speed
@@ -169,7 +171,7 @@ void __stdcall WinMainCRTStartup() {
 		if (currentTime - lastTime >= 1000) // If last prinf() was more than 1 sec ago
 		{
 			// printf and reset timer
-			snprintf(fpsString, 50, "%f FPS\n", double(nbFrames));
+			snprintf(fpsString, 50, "%f FPS\n (%d triangles)", double(nbFrames), tris);
 			OutputDebugStringA(fpsString);
 			nbFrames = 0;
 			lastTime = GetTickCount();
@@ -187,7 +189,15 @@ void __stdcall WinMainCRTStartup() {
 		globals.time += 0.001f*(currentTime - lastUpdate);
 		globals.deltaTime = 0.001f*(currentTime - lastUpdate);
 		lastUpdate = GetTickCount();
+		GLuint rdy;
+		glGetQueryObjectuiv(query, GL_QUERY_RESULT_AVAILABLE, &rdy);
+		if (rdy)
+			glGetQueryObjectuiv(query, GL_QUERY_RESULT, &tris);
+
+		glBeginQuery(GL_PRIMITIVES_GENERATED, query);
 		render();
+		glEndQuery(GL_PRIMITIVES_GENERATED);
+
 		GLenum err;
 		while ((err = glGetError()) != GL_NO_ERROR) {
 			OutputDebugStringA((char *)gluErrorString(err));

@@ -18,7 +18,8 @@ void mesh_new(struct mesh *self, unsigned int numVerts, unsigned int numIndices)
 	self->numIndices = numIndices;
 	self->indices = (unsigned int *)malloc(sizeof(unsigned int)*numIndices);
 	self->uniformIndex = freePerModel++;
-	mat4_scale(&models[self->uniformIndex].modelMatrix, 10.0);
+	self->wireframe = true;
+	mat4_scale(&models[self->uniformIndex].modelMatrix, 4.0);
 }
 void mesh_prepare(struct mesh *self)
 {
@@ -99,7 +100,7 @@ void quad_new(struct quad *self, unsigned int max_lod, float xoff , float yoff )
 		{
 			self->mesh.data[i*self->width + j].vertex.x = xoff + (float)j / (self->width-1);
 			self->mesh.data[i*self->width + j].vertex.y = yoff + (float)i / (self->height-1);
-			self->mesh.data[i*self->width + j].vertex.z = NOISE(j, i);
+			self->mesh.data[i*self->width + j].vertex.z = 0; // NOISE(j, i);
 		}
 	}
 
@@ -132,6 +133,8 @@ void quad_new(struct quad *self, unsigned int max_lod, float xoff , float yoff )
 
 
 	SHADER(self->mesh.sp, "quad", standard, quad);
+	shader_source(&self->mesh.sp, GL_TESS_CONTROL_SHADER, standard_tesc, standard_tesc_len);
+	shader_source(&self->mesh.sp, GL_TESS_EVALUATION_SHADER, standard_tese, standard_tese_len);
 
 	//shader_init(&quadp, "quad");
 	//shader_source(&quadp, GL_FRAGMENT_SHADER, quad_frag, quad_frag_len);
@@ -144,27 +147,27 @@ void quad_new(struct quad *self, unsigned int max_lod, float xoff , float yoff )
 void quad_draw(struct quad *self)
 {
 	glBindVertexArray(self->mesh.vao);
+	glPatchParameteri(GL_PATCH_VERTICES, 4);
 	shader_use(&self->mesh.sp);
 	glUniform1i(glGetUniformLocation(self->mesh.sp.program, "currentModel"), self->mesh.uniformIndex);
 	shader_verify(&self->mesh.sp);
 	//glDrawArrays(GL_QUADS, 0, WIDTH*HEIGHT * 4);
 	if (self->mesh.wireframe) {
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		glEnable(GL_POLYGON_OFFSET_FILL);
+
 		glPolygonOffset(5, 5);
 		glLineWidth(2.0);
-		glDrawElements(GL_QUADS, self->mesh.numIndices, GL_UNSIGNED_INT, NULL);
-		glClear(GL_COLOR_BUFFER_BIT);
+		glEnable(GL_POLYGON_OFFSET_FILL);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		
 	}
 	if(self->lod == 0)
-		glDrawElements(GL_QUADS, 4, GL_UNSIGNED_INT, NULL);
+		glDrawElements(GL_PATCHES, 4, GL_UNSIGNED_INT, NULL);
 	else {
 		// 4^lod							// sum_0^{lod-1} 4^k 
 
 		int numElements = 4 << 2 * ((int)self->lod);
 		int offset = 4 * ((4 << 2*((int)self->lod-1)) - 1) / 3;
-		glPatchParameteri(GL_PATCH_VERTICES, 4);
+
 		glDrawElements(GL_PATCHES, numElements, GL_UNSIGNED_INT, (void *)(offset * sizeof(int)));
 		//4 * ((4 << max_lod + 1) - 1) / 3
 		//GLuint query;

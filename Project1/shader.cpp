@@ -3,7 +3,7 @@
 #include "shaders.h"
 
 const char * const INCLUDE =
-"#version 330 compatibility\n"
+"#version 400 compatibility\n"
 "#define debug(on)\n"
 "layout(std140) uniform global {"
 "	mat4 viewMatrix;"
@@ -18,7 +18,8 @@ const char * const INCLUDE =
 "layout(std140) uniform model {"
 "	mat4 modelMatrix[128];"
 "};\n"
-"uniform int currentModel;\n";
+"uniform int currentModel;\n"
+"#line 1\n";
 static object *shaderCache = NULL;
 static GLuint currentProgram;
 void shader_init(struct shader_program * self, const char * name)
@@ -83,8 +84,14 @@ void shader_verify(const struct shader_program *self)
 }
 bool shader_source(struct shader_program *self, GLenum type, const unsigned char * str, int size)
 {
-	if (self->vert_shader && self->frag_shader)
-		return true;
+	if ((self->vert_shader && type == GL_VERTEX_SHADER)
+		|| (self->frag_shader && type == GL_FRAGMENT_SHADER)
+		|| (self->tesc_shader && type == GL_TESS_CONTROL_SHADER)
+		|| (self->tese_shader && type == GL_TESS_EVALUATION_SHADER))
+	{
+		OutputDebugStringA("Changing attached shader not supported");
+		return false;
+	}
 	GLuint shader = glCreateShader(type);
 	int sz[2] = { strlen((const char *)INCLUDE), size };
 	char *ptrs[2] = { (char *)INCLUDE, (char *)str };
@@ -119,8 +126,13 @@ bool shader_source(struct shader_program *self, GLenum type, const unsigned char
 		OutputDebugStringA("LINKING...");
 		glLinkProgram(self->program);
 		check_compile(self->program, GL_LINK_STATUS);
+		glUseProgram(self->program);
 		glUniformBlockBinding(self->program, glGetUniformBlockIndex(self->program, "global"), 0);
 		glUniformBlockBinding(self->program, glGetUniformBlockIndex(self->program, "model"), 1);
+
+		glUniform1i(glGetUniformLocation(self->program, "texture0"), 0);
+		glUniform1i(glGetUniformLocation(self->program, "texture1"), 1);
+		glUniform1i(glGetUniformLocation(self->program, "texture2"), 2);
 		object_set_int(shaderCache, self->name, (int)self);
 	}
 	return true;
