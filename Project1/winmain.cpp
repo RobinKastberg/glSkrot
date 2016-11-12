@@ -66,7 +66,7 @@ void init()
 	mouse_move(0, 0);
 	//init_snow();
 	//init_quad();
-
+	/*
 	for (int i = 0; i < 5; i++)
 	{
 		for (int j = 0; j < 5; j++) 
@@ -85,8 +85,9 @@ void init()
 
 		}
 	}
-
 	q[13].lod = 7;
+	*/
+	
 	init_skybox();
 	glGenBuffers(1, &uboGlobals);
 	glBindBuffer(GL_UNIFORM_BUFFER, uboGlobals);
@@ -98,7 +99,7 @@ void init()
 	glBufferData(GL_UNIFORM_BUFFER, sizeof(models), &models, GL_DYNAMIC_DRAW);
 	glBindBufferBase(GL_UNIFORM_BUFFER, 1, uboModels);
 
-	globals.lookAt = vec4{ 2.5,2.5,1,0 };
+	globals.lookAt = vec4{ 0,0,0,0 };
 
 
 }
@@ -122,7 +123,7 @@ void render()
 	draw_skybox();
 	for (int i = 0; i < 25; i++)
 	{
-		quad_draw(q + i);
+	//	quad_draw(q + i);
 	}
 
 }

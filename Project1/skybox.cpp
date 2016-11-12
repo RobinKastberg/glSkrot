@@ -175,6 +175,8 @@ void init_skybox()
 
 	shader_use(&skyboxp);
 	glUniform1i(glGetUniformLocation(skyboxp.program, "tex"), 0);
+	glUniform1i(glGetUniformLocation(skyboxp.program, "tex2d"), 1);
+
 }
 
 void draw_skybox()

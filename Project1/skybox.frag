@@ -3,6 +3,7 @@ out vec4 out_Color;
 in vec2 v_TexCoord;
 in vec3 eyeDirection;
 uniform samplerCube tex;
+uniform sampler2D tex2d;
 
 
 /*void main(){
@@ -32,17 +33,16 @@ float cube(in vec3 position, in vec3 center, in float radius)
 	return max3(abs(position - center)) - radius;
 }
 float dist(in vec3 position) {
-
-	return min(min(sphere(position, vec3(0,0,0), 0.1),
-				cube(position, vec3(0.3,0,0), 0.1)),position.y+1);
+	
+	return 0.2*texture(tex, position.xyz)+sphere(position, vec3(0,0,0), 1); // -0.1*texture(tex2d, 0.1*position.xy).r;//sphere(mod(position,1)-0.5, vec3(0,0,0), 0.3); //sphere(position, vec3(0,0,0), 0.3);
 }
 vec3 grad(in vec3 position)
 {
-	float h = 0.0001;
+	const float h = 0.01;
 	vec3 ret;
-	ret.x = (dist(position+vec3(h,0,0)) - dist(position))/h;
-	ret.y = (dist(position+vec3(0,h,0)) - dist(position))/h;
-	ret.z = (dist(position+vec3(0,0,h)) - dist(position))/h;
+	ret.x = (dist(position+vec3(h,0,0)) - dist(position+vec3(-h,0,0)))/(2*h);
+	ret.y = (dist(position+vec3(0,h,0)) - dist(position+vec3(0,-h,0)))/(2*h);
+	ret.z = (dist(position+vec3(0,0,h)) - dist(position+vec3(h,0,-h)))/(2*h);
 
 	return normalize(ret);
 }
@@ -54,31 +54,36 @@ void main()
 						0.5*(-eyeDirection.z+1)
 						);
 
-	vec3 ray = vec3(2*v_TexCoord.xy-1,-1);
+	float u = 2*v_TexCoord.x - 1;
+	float v = 2*v_TexCoord.y - 1;
+	vec3 pos = cameraPosition.xyz;
+	mat4 vMatrix = transpose(viewMatrix);
+	vec3 ray = normalize(u * vMatrix[0].xyz + v * vMatrix[1].xyz - vMatrix[2].xyz);
+	//vec3 ray = vec3(2*v_TexCoord.xy-1,-1);
 	//ray.y -= 0.4;
 	//vec3 pos = vec3(0,1,1);
-	vec3 pos = cameraPosition.xyz;
-	//vec3 ray = eyeDirection.xyz;
+	//vec3 pos = cameraPosition.xyz;
     // For each iteration, we read from our noise function the density of our current position, and adds it to this density variable.
 	float density = 0;
-    int _Iterations = 20;
+    int _Iterations = 100;
 	float _CloudDensity = 0.5;    
 	float _ViewDistance = 0.01;
-	float t = 0.0;        
+	float t = 0.0;       
+	vec3 lightPosition = vec3(1,1,1); 
     for(int i = 0; i < _Iterations; ++i)
     {
         vec3 p = pos + ray * t;
-        float d = 0.7-texture(tex, p).r; //dist(p); // Distance to sphere of radius 0.5
-        if(d < 0.0001)
+        float d = dist(p); // Distance to sphere of radius 0.5
+        if(d < 0.01)
         {
-            out_Color = i*vec4(1.0)/20; // Sphere color
-			//out_Color.rgb = vec3(1,1,0); //grad(p); //normalize(p);
+            //out_Color = i*vec4(1.0)/20; // Sphere color
+			out_Color = ambient + gradient * dot(normalize(lightPosition - p),grad(p)); //normalize(p);
 			//out_Color.a = 1;
-            return;
         }
 
         t += d;
     }
+	return;
 	discard;
 	out_Color = vec4(0,0,0,1);
     // And here i just melted all our variables together with random numbers until I had something that looked good.

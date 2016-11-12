@@ -283,7 +283,15 @@
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Compiling shaders</Message>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Compiling shaders</Message>
     </CustomBuild>
-    <None Include="skybox.frag" />
+    <CustomBuild Include="skybox.frag">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">shader_compile</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">shaders.h</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkObjects>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">shader_compile</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">shaders.h</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</LinkObjects>
+    </CustomBuild>
     <None Include="shader_compile.bat" />
     <None Include="skybox.vert" />
     <None Include="standard.vert" />
