@@ -43,8 +43,8 @@ void mat4_debug(struct mat4 *self)
 	char out[100];
 	for (int i = 0; i < 4; i++)
 	{
-		//snprintf(out, 100, "%f %f %f %f\n", self->c[4 * i + 0], self->c[4 * i + 1], self->c[4 * i + 2], self->c[4 * i + 3]);
-		//OutputDebugStringA(out);
+		snprintf(out, 100, "%f %f %f %f\n", self->c[4 * i + 0], self->c[4 * i + 1], self->c[4 * i + 2], self->c[4 * i + 3]);
+		OutputDebugStringA(out);
 	}
 }
 

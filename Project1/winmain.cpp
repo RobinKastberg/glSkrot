@@ -69,7 +69,7 @@ void init()
 
 	for (int i = 0; i < 5; i++)
 	{
-		for (int j = 0; j < 5; j++)
+		for (int j = 0; j < 5; j++) 
 		{
 			quad_new(&q[5 * i + j], 5, i, j);
 			q[5 * i + j].lod = 5;
@@ -86,7 +86,7 @@ void init()
 		}
 	}
 
-	q[13].lod = 5;
+	q[13].lod = 7;
 	init_skybox();
 	glGenBuffers(1, &uboGlobals);
 	glBindBuffer(GL_UNIFORM_BUFFER, uboGlobals);
@@ -122,7 +122,7 @@ void render()
 	draw_skybox();
 	for (int i = 0; i < 25; i++)
 	{
-		quad_draw(q + i);
+	//	quad_draw(q + i);
 	}
 
 }
