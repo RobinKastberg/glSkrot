@@ -44,7 +44,7 @@ void main()
 
   v_texCoord = fract(v_Position.xy);
 
-  v_Position.z += 0.5*texture(texture1, v_texCoord).r;
+  v_Position.z += 0.1*texture(texture1, v_texCoord).r;
   gl_Position = projectionMatrix * viewMatrix  * modelMatrix[currentModel] * v_Position;
    v_eyeNormal = interpolate(
   tc_eyeNormal[0], 

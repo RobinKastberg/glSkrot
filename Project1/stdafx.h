@@ -84,7 +84,7 @@ __declspec(align(16)) struct perModel {
 };
 
 extern struct global globals;
-#define MAX_MODELS 128
+#define MAX_MODELS 512
 extern struct perModel models[MAX_MODELS];
 extern int freePerModel;
 void debug_init();

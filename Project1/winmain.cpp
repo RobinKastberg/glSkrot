@@ -35,6 +35,7 @@ float thetay = 3.14159/4;
 float radius = 8.0;
 static unsigned int animation_step = 0;
 terrain q[25];
+
 void mouse_move(int dx, int dy)
 {
 	thetax += ((float)dx)/400.0;
@@ -53,6 +54,8 @@ struct pprocess blur;
 struct pprocess blur2;
 struct surface s;
 struct surface s3;
+#define NUM_GRASS 256
+surface grass[NUM_GRASS];
 void init()
 {
 	wglSwapIntervalEXT(0);
@@ -89,34 +92,31 @@ void init()
 	}
 
 	q[13].lod = 5;
-	surface_new(&s, 100);
-	s.p[0] = vec3{ 0,0,0 };
-	s.p[1] = vec3{ 1,0,0 };
-	s.p[2] = vec3{ 2,0,0 };
+	for (int i = 0; i < NUM_GRASS; i++)
+	{
+		surface_new(&grass[i], 15);
+		float baseX = (float)(rand() % 100)/2.0;
+		float baseY = (float)(rand() % 100)/2.0;
+		float highX = (float)(rand() % 100) / 100.0 - 0.5;
+		float highY = (float)(rand() % 100) / 100.0 - 0.5;
+		float baseZ = 0.0;
+		grass[i].p[0] = vec3{ baseX-0.15f,baseY,baseZ };
+		grass[i].p[1] = vec3{ baseX+0.00f,baseY,baseZ };
+		grass[i].p[2] = vec3{ baseX+0.15f,baseY,baseZ };
 
-	s.p[3] = vec3{ 0,1,1 };
-	s.p[4] = vec3{ 1,1,2 };
-	s.p[5] = vec3{ 2,1,1 };
+		grass[i].p[3] = vec3{ baseX + highX / 2 - 0.075f,baseY,baseZ };
+		grass[i].p[4] = vec3{ baseX + highX / 2,baseY,baseZ };
+		grass[i].p[5] = vec3{ baseX + highX / 2 + 0.075f,baseY, baseZ };
 
-	s.p[6] = vec3{ 0,2,0 };
-	s.p[7] = vec3{ 1,2,1 };
-	s.p[8] = vec3{ 2,2,0 };
+		grass[i].p[6] = vec3{ baseX + highX,baseY,baseZ+3.0f };
+		grass[i].p[7] = vec3{ baseX + highX,baseY,baseZ+3.0f };
+		grass[i].p[8] = vec3{ baseX + highX,baseY,baseZ+3.0f };
+
+		mat4_scale(&models[grass[i].mesh.uniformIndex].modelMatrix, 0.1f);
+	}
+	
+
 	s.mesh.wireframe = true;
-
-
-	surface_new(&s3, 100);
-	s3.p[0] = vec3{ 0,0,0 };
-	s3.p[1] = vec3{ 0,1,1 };
-	s3.p[2] = vec3{ 0,2,0 };
-
-	s3.p[3] = vec3{ -1,0,0 };
-	s3.p[4] = vec3{ -1,1,0 };
-	s3.p[5] = vec3{ -1,2,-1 };
-
-	s3.p[6] = vec3{ -2,0,0 };
-	s3.p[7] = vec3{ -2,1,0 };
-	s3.p[8] = vec3{ -2,2,0 };
-	s3.mesh.wireframe = true;
 
 	init_skybox();
 	glGenBuffers(1, &uboGlobals);
@@ -154,13 +154,17 @@ void render()
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(models), &models);
 
 	//draw_snow();
-	s.steps = animation_step % 100;
-	surface_prepare(&s);
-	surface_draw(&s);
+	s.steps = 4;
+	float t = globals.time;
+	for (int i = 0; i < NUM_GRASS; i++)
+	{
+		grass[i].p[6].x += 0.001*sin(globals.time);
+		grass[i].p[7].x += 0.001*sin(globals.time);
+		grass[i].p[8].x += 0.001*sin(globals.time);
+		surface_prepare(&grass[i]);
+		surface_draw(&grass[i]);
+	}
 
-	s3.steps = animation_step % 100;
-	surface_prepare(&s3);
-	surface_draw(&s3);
 
 	for (int i = 0; i < 25; i++)
 	{

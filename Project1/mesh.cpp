@@ -5,9 +5,6 @@ static int freePerModel = 0;
 
 void mesh_new(struct mesh *self, unsigned int numVerts, unsigned int numIndices)
 {
-	glGenVertexArrays(1, &self->vao);
-	glGenBuffers(1, &self->vbo);
-	glGenBuffers(1, &self->ibo);
 	self->data = (struct meshData *)malloc(sizeof(struct meshData)*numVerts);
 	self->numVerts = numVerts;
 	self->numIndices = numIndices;
@@ -15,23 +12,28 @@ void mesh_new(struct mesh *self, unsigned int numVerts, unsigned int numIndices)
 	self->uniformIndex = freePerModel++;
 	self->wireframe = false;
 	mat4_scale(&models[self->uniformIndex].modelMatrix, 1.0);
-}
-void mesh_prepare(struct mesh *self)
-{
+
+	glGenVertexArrays(1, &self->vao);
+	glGenBuffers(1, &self->vbo);
+	glGenBuffers(1, &self->ibo);
 	glBindVertexArray(self->vao);
 	glBindBuffer(GL_ARRAY_BUFFER, self->vbo);
-	glBufferData(GL_ARRAY_BUFFER, self->numVerts*sizeof(meshData), self->data, GL_STATIC_DRAW);
-
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self->ibo);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, self->numIndices * sizeof(int), self->indices, GL_STATIC_DRAW);
-
+	glBufferData(GL_ARRAY_BUFFER, self->numVerts*sizeof(meshData), NULL, GL_STATIC_DRAW);
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
 	glEnableVertexAttribArray(2);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 32, 0);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 32, (void *)12);
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 32, (void *)24);
-
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self->ibo);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, self->numIndices * sizeof(int), NULL, GL_STATIC_DRAW);
+}
+void mesh_prepare(struct mesh *self)
+{
+	glBindVertexArray(self->vao);
+	glBindBuffer(GL_ARRAY_BUFFER, self->vbo);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, self->numVerts*sizeof(meshData), self->data);
+	glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0,  self->numIndices * sizeof(int), self->indices);
 }
 void mesh_draw(struct mesh *self, GLenum type, unsigned int count, unsigned int offset)
 {
