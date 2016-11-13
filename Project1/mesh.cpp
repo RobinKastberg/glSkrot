@@ -10,7 +10,6 @@ void mesh_new(struct mesh *self, unsigned int numVerts, unsigned int numIndices)
 	self->numIndices = numIndices;
 	self->indices = (unsigned int *)malloc(sizeof(unsigned int)*numIndices);
 	self->uniformIndex = freePerModel++;
-	self->wireframe = true;
 	mat4_scale(&models[self->uniformIndex].modelMatrix, 1.0);
 
 	glGenVertexArrays(1, &self->vao);

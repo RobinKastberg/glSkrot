@@ -55,7 +55,7 @@ void lod(struct terrain *self, int x, int y, int size, int l)
 		lod(self, size / 2, size / 2, size / 2, l + 1);
 	}*/
 }
-#define NOISE(x,y) 0.3*perlin2d(xoff + (float)(x) /(self->width-1),yoff + (float)(y) / (self->height-1), 8, 10)
+#define NOISE(x,y) 0.1*perlin2d(xoff + (float)(x) /(self->width-1),yoff + (float)(y) / (self->height-1), 8, 10)
 
 void terrain_new(struct terrain *self, unsigned int max_lod, float xoff , float yoff )
 {
@@ -69,7 +69,7 @@ void terrain_new(struct terrain *self, unsigned int max_lod, float xoff , float 
 		{
 			self->mesh.data[i*self->width + j].vertex.x = xoff + (float)j / (self->width-1);
 			self->mesh.data[i*self->width + j].vertex.y = yoff + (float)i / (self->height-1);
-			self->mesh.data[i*self->width + j].vertex.z = 0; // NOISE(j, i);
+			self->mesh.data[i*self->width + j].vertex.z = NOISE(j, i);
 		}
 	}
 
@@ -102,8 +102,8 @@ void terrain_new(struct terrain *self, unsigned int max_lod, float xoff , float 
 
 
 	SHADER(self->mesh.sp, "terrain", standard, terrain);
-	shader_source(&self->mesh.sp, GL_TESS_CONTROL_SHADER, standard_tesc, standard_tesc_len);
-	shader_source(&self->mesh.sp, GL_TESS_EVALUATION_SHADER, standard_tese, standard_tese_len);
+	//shader_source(&self->mesh.sp, GL_TESS_CONTROL_SHADER, standard_tesc, standard_tesc_len);
+	//shader_source(&self->mesh.sp, GL_TESS_EVALUATION_SHADER, standard_tese, standard_tese_len);
 
 	//shader_init(&quadp, "quad");
 	//shader_source(&quadp, GL_FRAGMENT_SHADER, quad_frag, quad_frag_len);
@@ -130,14 +130,14 @@ void terrain_draw(struct terrain *self)
 		
 	}
 	if(self->lod == 0)
-		glDrawElements(GL_PATCHES, 4, GL_UNSIGNED_INT, NULL);
+		glDrawElements(GL_QUADS, 4, GL_UNSIGNED_INT, NULL);
 	else {
 		// 4^lod							// sum_0^{lod-1} 4^k 
 
 		int numElements = 4 << 2 * ((int)self->lod);
 		int offset = 4 * ((4 << 2*((int)self->lod-1)) - 1) / 3;
 
-		glDrawElements(GL_PATCHES, numElements, GL_UNSIGNED_INT, (void *)(offset * sizeof(int)));
+		glDrawElements(GL_QUADS, numElements, GL_UNSIGNED_INT, (void *)(offset * sizeof(int)));
 		//4 * ((4 << max_lod + 1) - 1) / 3
 		//GLuint query;
 		//glGenQueries(1, &query);

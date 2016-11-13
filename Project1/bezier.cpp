@@ -44,7 +44,7 @@ void surface_new(struct surface *self, unsigned int steps)
 	self->steps = steps;
 	mesh_new(&self->mesh, steps * steps, 4 * (steps - 1) * (steps - 1));
 
-	SHADER(self->mesh.sp, "curve", standard, standard);
+	SHADER(self->mesh.sp, "curve", cylindrical_billboard, standard);
 
 }
 vec3 curve_get_position(struct curve *self, float u)

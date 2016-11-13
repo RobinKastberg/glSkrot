@@ -144,6 +144,12 @@
       <Filter>Fragment Shader</Filter>
     </None>
     <None Include="blur.comp" />
+    <None Include="raymarching.frag">
+      <Filter>Fragment Shader</Filter>
+    </None>
+    <None Include="cylindrical_billboard.vert">
+      <Filter>Vertex Shader</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="main.frag">

@@ -223,6 +223,7 @@
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkObjects>
     </CustomBuild>
     <None Include="blur.comp" />
+    <None Include="cylindrical_billboard.vert" />
     <None Include="main.vert">
       <FileType>Document</FileType>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">shader_compile</Command>
@@ -237,6 +238,7 @@
     <CustomBuild Include="terrain.frag">
       <FileType>Document</FileType>
     </CustomBuild>
+    <None Include="raymarching.frag" />
     <None Include="snow.frag">
       <FileType>Document</FileType>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">shader_compile</Command>

@@ -36,9 +36,10 @@ float radius = 8.0;
 static unsigned int animation_step = 0;
 terrain q[25];
 GLuint ppTex;
-static int work_group_size = 256;
-static int blur_passes = 10;
-static bool blur_enabled = false;
+static bool variable_work_size = false;
+static int work_group_size = 128;
+static int blur_passes = 3;
+static bool blur_enabled = true;
 void mouse_move(int dx, int dy)
 {
 	thetax += ((float)dx)/400.0;
@@ -57,7 +58,7 @@ struct shader_program blur;
 struct pprocess blur2;
 struct surface s;
 struct surface s3;
-#define NUM_GRASS 10
+#define NUM_GRASS 128
 surface grass[NUM_GRASS];
 void init()
 {
@@ -133,7 +134,7 @@ void init()
 	glBindBufferBase(GL_UNIFORM_BUFFER, 1, uboModels);
 
 
-	globals.lightPos = vec4{ 2.5,2.5,5,0 };
+	globals.lightPos = vec4{ 2.5,2.5,1,0 };
 	fbo_new(&fbo, width, height);
 	glGenTextures(1, &ppTex);
 	texture(&ppTex, BUFFER_COLOR, width, height, NULL);
@@ -184,15 +185,33 @@ void render()
 	if (blur_enabled)
 	{
 		shader_use(&blur);
-		for (int i = 0; i < 2*blur_passes; i++)
+		glMemoryBarrier(GL_FRAMEBUFFER_BARRIER_BIT);
+		glBindImageTexture(0, fbo.texture, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA8);
+		glPushAttrib(GL_TEXTURE_BIT);
+		glActiveTexture(GL_TEXTURE5);
+		glBindTexture(GL_TEXTURE_2D, fbo.depth_texture);
+		glUniform1i(glGetUniformLocation(blur.program, "horizontal"), 0);
+		for (int i = 0; i < blur_passes; i++)
 		{
-			glUniform1i(glGetUniformLocation(blur.program, "horizontal"), i % 2);
-			glBindImageTexture(i % 2, fbo.texture, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA8);
-			glBindImageTexture(1 - (i % 2), ppTex, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA8);
-			glDispatchCompute(max(width, height) / 128, 1, 1);
-			glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL_TEXTURE_UPDATE_BARRIER_BIT);
+			if (variable_work_size)
+				glDispatchComputeGroupSizeARB(1 + width / work_group_size, 1, 1, work_group_size, 1, 1);
+			else
+				glDispatchCompute(1 + max(width, height) / work_group_size, 1, 1);
+			glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 		}
+		glUniform1i(glGetUniformLocation(blur.program, "horizontal"), 1);
+		for (int i = 0; i < blur_passes; i++)
+		{
+			if (variable_work_size)
+				glDispatchComputeGroupSizeARB(1 + height / work_group_size, 1, 1, work_group_size, 1, 1);
+			else
+				glDispatchCompute(1 + height / work_group_size, 1, 1);
+
+			glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+		}
+		glPopAttrib();
 	}
+	glMemoryBarrier(GL_FRAMEBUFFER_BARRIER_BIT);
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo.handle);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 	glBlitFramebuffer(0, 0, fbo.width, fbo.height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_LINEAR);

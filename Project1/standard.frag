@@ -25,7 +25,6 @@ vec3 specularReflection = attenuation * vec3(_LightColor0)
     reflect(-lightPos.xyz, v_modelNormal.xyz), 
     viewDirection)), _Shininess);
 	//out_Color.rgb = attenuation * vec3(_LightColor0) + specularReflection;
-	//out_Color.rgb = v_modelNormal.xyz;
-	out_Color.rgb = vec3(1,1,0);
+	out_Color.rgb = v_modelNormal.xyz;
 	out_Color.a = 1;
 }
