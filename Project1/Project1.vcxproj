@@ -171,6 +171,7 @@
   <ItemGroup>
     <ClInclude Include="bezier.h" />
     <ClInclude Include="chunk.h" />
+    <ClInclude Include="fbo.h" />
     <ClInclude Include="hash.h" />
     <ClInclude Include="mesh.h" />
     <ClInclude Include="model.h" />
@@ -187,6 +188,7 @@
     <ClCompile Include="bezier.cpp" />
     <ClCompile Include="chunk.cpp" />
     <ClCompile Include="debug.cpp" />
+    <ClCompile Include="fbo.cpp" />
     <ClCompile Include="hash.cpp" />
     <ClCompile Include="loader.cpp" />
     <ClCompile Include="mesh.cpp" />
@@ -220,6 +222,7 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">shaders.h</Outputs>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkObjects>
     </CustomBuild>
+    <None Include="blur.comp" />
     <None Include="main.vert">
       <FileType>Document</FileType>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">shader_compile</Command>

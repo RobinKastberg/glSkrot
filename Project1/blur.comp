@@ -1,0 +1,50 @@
+//#extension GL_ARB_compute_variable_group_size : enable
+//#ifdef GL_ARB_compute_variable_group_size
+//layout(local_size_variable) in;
+//#else
+layout(local_size_x = 128) in;
+//#endif
+layout(rgba8, binding = 0) uniform image2D img_input;
+layout(rgba8, binding = 1) uniform image2D img_output;
+#define IMG(x,y) imageLoad(img_input, ivec2(x, y))
+#define IMGT(x,y) imageLoad(img_input, ivec2(y, x))
+#define IMG_STORE(x,y,value) imageStore(img_output, ivec2(x, y), value);
+#define IMG_STORET(x,y,value) imageStore(img_output, ivec2(y, x), (value+imageLoad(img_output, ivec2(y,x)))/2 );
+uniform bool horizontal = false;
+void main() {
+  const uvec3 id = gl_GlobalInvocationID;
+  const int width = imageSize(img_input).x;
+  const int height = imageSize(img_input).y;
+  if(!horizontal) // && id.x < width)
+  {
+
+	  vec4 pixel = IMG(id.x, 0) + IMG(id.x, 1) + IMG(id.x, 2);
+		pixel /= 3.0;
+	  IMG_STORE(id.x, 0, IMG(id.x, 0));
+	  IMG_STORE(id.x, 1, pixel);
+		  for(int i=2;i<height-1;i++)
+		  {
+			vec4 l1 = IMG(id.x, i+1);
+			vec4 l2 = IMG(id.x, i-2);
+			pixel += (l1 - l2)/3.0;
+			IMG_STORE(id.x, i, pixel);
+		  }
+		IMG_STORE(id.x, height-1, IMG(id.x, height-1));
+	}
+	memoryBarrierImage();
+	if(horizontal) //  && id.x < height)
+	{
+		vec4 pixel = IMGT(id.x, 0) + IMGT(id.x, 1) + IMGT(id.x, 2);
+		pixel /= 3.0;
+	  IMG_STORET(id.x, 0, IMGT(id.x, 0));
+	  IMG_STORET(id.x, 1, pixel);
+		  for(int i=2;i<width-1;i++)
+		  {
+			vec4 l1 = IMGT(id.x, i+1);
+			vec4 l2 = IMGT(id.x, i-2);
+			pixel += (l1 - l2)/3.0;
+			IMG_STORET(id.x, i, pixel);
+		  }
+		IMG_STORET(id.x, width-1, IMGT(id.x, width-1));
+	}
+}

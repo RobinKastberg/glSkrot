@@ -3,7 +3,7 @@
 #include "shaders.h"
 
 const char * const INCLUDE =
-"#version 400 compatibility\n"
+"#version 430 compatibility\n"
 "#define debug(on)\n"
 "layout(std140) uniform global {"
 "	mat4 viewMatrix;"
@@ -82,6 +82,7 @@ void shader_verify(const struct shader_program *self)
 		exit(1);
 	}
 }
+
 bool shader_source(struct shader_program *self, GLenum type, const unsigned char * str, int size)
 {
 	if ((self->vert_shader && type == GL_VERTEX_SHADER)
@@ -136,6 +137,27 @@ bool shader_source(struct shader_program *self, GLenum type, const unsigned char
 		glUniform1i(glGetUniformLocation(self->program, "texture2"), 2);
 		object_set_int(shaderCache, self->name, (int)self);
 	}
+	return true;
+}
+bool shader_compute(struct shader_program *self, const unsigned char * str, int size)
+{
+	if (self->comp_shader)
+	{
+		OutputDebugStringA("Changing attached shader not supported");
+		return false;
+	}
+	shader_source(self, GL_COMPUTE_SHADER, str, size);
+	OutputDebugStringA("LINKING...");
+	glLinkProgram(self->program);
+	check_compile(self->program, GL_LINK_STATUS);
+	glUseProgram(self->program);
+	glUniformBlockBinding(self->program, glGetUniformBlockIndex(self->program, "global"), 0);
+	glUniformBlockBinding(self->program, glGetUniformBlockIndex(self->program, "model"), 1);
+
+	glUniform1i(glGetUniformLocation(self->program, "texture0"), 0);
+	glUniform1i(glGetUniformLocation(self->program, "texture1"), 1);
+	glUniform1i(glGetUniformLocation(self->program, "texture2"), 2);
+	object_set_int(shaderCache, self->name, (int)self);
 	return true;
 }
 void shader_use(const struct shader_program *self)

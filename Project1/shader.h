@@ -6,6 +6,7 @@ struct shader_program {
 	GLuint vert_shader = 0;
 	GLuint tesc_shader = 0;
 	GLuint tese_shader = 0;
+	GLuint comp_shader = 0;
 	const char * name;
 };
 
@@ -13,6 +14,7 @@ void shader_init(struct shader_program * self, const char * name);
 bool shader_source(struct shader_program *self, GLenum type, const unsigned char * str, int size);
 void shader_verify(const struct shader_program *self);
 void shader_use(const struct shader_program *self);
+bool shader_compute(struct shader_program *self, const unsigned char * str, int size);
 
 #define _SHADER(object, name, vertShader, fragShader) \
 	shader_init(&object, name); \

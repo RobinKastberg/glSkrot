@@ -60,6 +60,9 @@
     <ClInclude Include="quad.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="fbo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -116,6 +119,9 @@
     <ClCompile Include="quad.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="fbo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="xxd.exe" />
@@ -137,6 +143,7 @@
     <None Include="standard.frag">
       <Filter>Fragment Shader</Filter>
     </None>
+    <None Include="blur.comp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="main.frag">

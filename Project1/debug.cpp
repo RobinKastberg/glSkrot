@@ -8,7 +8,7 @@ void APIENTRY openglCallbackFunction(GLenum source,
 	const void* userParam)
 {
 
-	//OutputDebugStringA(message);
+	OutputDebugStringA(message);
 }
 
 void debug_init() 

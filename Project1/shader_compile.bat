@@ -24,3 +24,9 @@ rem			glslangValidator "%%~nf.tese"
 			echo extern unsigned int %%~nf_tese_len; >> shaders_include.h
             xxd -i "%%~nf.tese" >> shaders.h
 )
+for %%f in (*.comp) do (
+rem			glslangValidator "%%~nf.comp"
+			echo extern unsigned char %%~nf_comp[]; >> shaders_include.h
+			echo extern unsigned int %%~nf_comp_len; >> shaders_include.h
+            xxd -i "%%~nf.comp" >> shaders.h
+)

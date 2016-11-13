@@ -44,6 +44,7 @@ GLuint pprocess_do(struct pprocess *self, GLuint in_texture)
 void texture(GLuint *handle, GLenum format, int width, int height,GLenum *params)
 {
 	//glGenTextures(1, handle);
+	glPushAttrib(GL_TEXTURE_BIT);
 	glBindTexture(GL_TEXTURE_2D, *handle);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -66,5 +67,5 @@ void texture(GLuint *handle, GLenum format, int width, int height,GLenum *params
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, NULL);
 			break;
 	}
-	
+	glPopAttrib();
 }

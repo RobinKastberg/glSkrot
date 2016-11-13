@@ -29,13 +29,16 @@ static GLuint uboGlobals, uboModels;
 static GLuint fbos[2];
 static GLuint texs[MRTS+2];
 static superchunk *cnk;
-
+static struct fbo fbo;
 float thetax = 0;
 float thetay = 3.14159/4;
 float radius = 8.0;
 static unsigned int animation_step = 0;
 terrain q[25];
-
+GLuint ppTex;
+static int work_group_size = 256;
+static int blur_passes = 10;
+static bool blur_enabled = false;
 void mouse_move(int dx, int dy)
 {
 	thetax += ((float)dx)/400.0;
@@ -50,11 +53,11 @@ void mouse_move(int dx, int dy)
 
 
 HINSTANCE hInstance;
-struct pprocess blur;
+struct shader_program blur;
 struct pprocess blur2;
 struct surface s;
 struct surface s3;
-#define NUM_GRASS 256
+#define NUM_GRASS 10
 surface grass[NUM_GRASS];
 void init()
 {
@@ -94,7 +97,7 @@ void init()
 	q[13].lod = 5;
 	for (int i = 0; i < NUM_GRASS; i++)
 	{
-		surface_new(&grass[i], 15);
+		surface_new(&grass[i], 7);
 		float baseX = (float)(rand() % 100)/2.0;
 		float baseY = (float)(rand() % 100)/2.0;
 		float highX = (float)(rand() % 100) / 100.0 - 0.5;
@@ -131,7 +134,11 @@ void init()
 
 
 	globals.lightPos = vec4{ 2.5,2.5,5,0 };
-
+	fbo_new(&fbo, width, height);
+	glGenTextures(1, &ppTex);
+	texture(&ppTex, BUFFER_COLOR, width, height, NULL);
+	shader_init(&blur, "blur");
+	shader_compute(&blur, blur_comp, blur_comp_len);
 }
 
 
@@ -156,6 +163,7 @@ void render()
 	//draw_snow();
 	s.steps = 4;
 	float t = globals.time;
+	fbo_render_to_texture(&fbo);
 	for (int i = 0; i < NUM_GRASS; i++)
 	{
 		grass[i].p[6].x += 0.001*sin(globals.time);
@@ -171,6 +179,23 @@ void render()
 		terrain_draw(q + i);
 	}
 	draw_skybox();
+
+	fbo_done(&fbo);
+	if (blur_enabled)
+	{
+		shader_use(&blur);
+		for (int i = 0; i < 2*blur_passes; i++)
+		{
+			glUniform1i(glGetUniformLocation(blur.program, "horizontal"), i % 2);
+			glBindImageTexture(i % 2, fbo.texture, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA8);
+			glBindImageTexture(1 - (i % 2), ppTex, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA8);
+			glDispatchCompute(max(width, height) / 128, 1, 1);
+			glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL_TEXTURE_UPDATE_BARRIER_BIT);
+		}
+	}
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo.handle);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+	glBlitFramebuffer(0, 0, fbo.width, fbo.height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_LINEAR);
 }
 
 void __stdcall WinMainCRTStartup() {
@@ -200,8 +225,12 @@ void __stdcall WinMainCRTStartup() {
 	debug_init();
 	ShowWindow(hwnd, nshowcmd);
 	UpdateWindow(hwnd);
-	unsigned int lastTime = GetTickCount();
-	unsigned int lastUpdate = GetTickCount();
+	int64_t lastTime;
+	int64_t lastUpdate;
+	int64_t frequency;
+	QueryPerformanceFrequency((LARGE_INTEGER *)&frequency);
+	QueryPerformanceCounter((LARGE_INTEGER *)&lastTime);
+	QueryPerformanceCounter((LARGE_INTEGER *)&lastUpdate);
 	int nbFrames = 0;
 	char fpsString[50];
 
@@ -212,15 +241,16 @@ void __stdcall WinMainCRTStartup() {
 	for(;;)
 	{
 		// Measure speed
-		unsigned int currentTime = GetTickCount();
+		int64_t currentTime;
+		QueryPerformanceCounter((LARGE_INTEGER *)&currentTime);
 		nbFrames++;
-		if (currentTime - lastTime >= 1000) // If last prinf() was more than 1 sec ago
+		if (currentTime - lastTime >= frequency) // If last prinf() was more than 1 sec ago
 		{
 			// printf and reset timer
-			snprintf(fpsString, 50, "%f FPS\n (%d triangles)", double(nbFrames), tris);
+			snprintf(fpsString, 50, "%d FPS %f ??/draw (%d triangles)\n", nbFrames, 1000*globals.deltaTime,tris);
 			OutputDebugStringA(fpsString);
 			nbFrames = 0;
-			lastTime = GetTickCount();
+			QueryPerformanceCounter((LARGE_INTEGER *)&lastTime);
 			animation_step++;
 		}
 		if(PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))           // Is There A Message Waiting?
@@ -232,9 +262,9 @@ void __stdcall WinMainCRTStartup() {
 			break;
 
 		
-		globals.time += 0.001f*(currentTime - lastUpdate);
-		globals.deltaTime = 0.001f*(currentTime - lastUpdate);
-		lastUpdate = GetTickCount();
+		globals.time += (double)(currentTime - lastUpdate)/frequency;
+		globals.deltaTime = (double)(currentTime - lastUpdate)/frequency;
+		QueryPerformanceCounter((LARGE_INTEGER *)&lastUpdate);
 		GLuint rdy;
 		glGetQueryObjectuiv(query, GL_QUERY_RESULT_AVAILABLE, &rdy);
 		if (rdy)
@@ -401,6 +431,27 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_LBUTTONDOWN:
 		current_x = -1;
 		current_y = -1;
+		break;
+	case WM_KEYDOWN:
+		if (wParam == 'W')
+		{
+			globals.lookAt.y += 0.1;
+			globals.cameraPosition.y += 0.1;
+		} else if(wParam == 'S') {
+			globals.cameraPosition.y -= 0.1;
+			globals.lookAt.y -= 0.1;
+		}
+		else if (wParam == 'B') {
+			blur_enabled = !blur_enabled;
+		}
+		else if (wParam == 'Q') {
+			blur_passes++;
+		}
+		else if (wParam == 'A') {
+			blur_passes--;
+		}
+		printf("NEW WORK GROUP SIZE: %d\n", work_group_size);
+		return 0;
 		break;
 	case WM_RBUTTONDOWN:
 		// here you can add extra check and decide whether to start

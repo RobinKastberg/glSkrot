@@ -78,12 +78,12 @@ void main()
         {
             //out_Color = i*vec4(1.0)/20; // Sphere color
 			out_Color = ambient + gradient * dot(normalize(lightPosition - p),grad(p)); //normalize(p);
+			return;
 			//out_Color.a = 1;
         }
 
         t += d;
     }
-	return;
 	discard;
 	out_Color = vec4(0,0,0,1);
     // And here i just melted all our variables together with random numbers until I had something that looked good.
