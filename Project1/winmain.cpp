@@ -136,7 +136,7 @@ void init()
 
 
 	globals.lightPos = vec4{ 2.5,2.5,1,0 };
-	fbo_new(&fbo, 2*width, 2*height);
+	fbo_new(&fbo, width, height);
 	shader_init(&blur, "blur");
 	shader_compute(&blur, blur_comp, blur_comp_len);
 }
@@ -214,7 +214,7 @@ void render()
 			if (variable_work_size)
 				glDispatchComputeGroupSizeARB(1 + height / work_group_size, 1, 1, work_group_size, 1, 1);
 			else
-				glDispatchCompute(1 + height / work_group_size, 1, 1);
+				glDispatchCompute(1 + max(width, height) / work_group_size, 1, 1);
 
 			glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 		}

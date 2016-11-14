@@ -2,7 +2,7 @@
 //#ifdef GL_ARB_compute_variable_group_size
 //layout(local_size_variable) in;
 //#else
-layout(local_size_x =256) in;
+layout(local_size_x =128) in;
 //#endif
 layout(rgba8, binding = 0) uniform image2D img_input;
 layout(binding = 5) uniform sampler2D depth;
@@ -11,11 +11,14 @@ layout(binding = 5) uniform sampler2D depth;
 #define IMG_STORE(x,y,value) imageStore(img_input, ivec2(x, y), value);
 #define IMG_STORET(x,y,value) imageStore(img_input, ivec2(y, x), value);
 #define DEPTH(x,y) texture(depth, vec2((float(x)+0.5)/width, (float(y)+0.5)/height)).r
+#define GATHER(x,y) textureGather(depth, vec2((float(x)+0.5)/width, (float(y)+0.5)/height)).r
+#define GATHERT(x,y) GATHER(y,x)
 #define DEPTHT(x,y) DEPTH(y,x)
 uniform bool horizontal = false;
 
 const float FAR = 0.999;
 const float NEAR = 0.95;
+const float eps = 0.000000001;
 void main() {
   const uvec3 id = gl_GlobalInvocationID;
   const unsigned int width = imageSize(img_input).x;
@@ -35,7 +38,7 @@ void main() {
 		vec4 l2 = IMG(id.x, i-2);
 		pixel += (l1 - l2)/3.0;
 		
-		if(DEPTH(id.x, i-2) > FAR || DEPTH(id.x, i-2) < NEAR)
+		if((DEPTH(id.x, i-2) > FAR || DEPTH(id.x, i-2) < NEAR) && DEPTH(id.x, i-2)  > GATHER(id.x, id-2))
 			//IMG_STORE(id.x, i-2, vec4(1,0,0,1));
 			IMG_STORE(id.x, i-2, current[0]);
 		current[0] = current[1];
@@ -58,7 +61,7 @@ void main() {
 		vec4 l1 = IMGT(id.x, i+1);
 		vec4 l2 = IMGT(id.x, i-2);
 		pixel += (l1 - l2)/3.0;
-		if(DEPTHT(id.x, i-2) > FAR || DEPTHT(id.x, i-2) < NEAR)
+		if((DEPTHT(id.x, i-2) > FAR || DEPTHT(id.x, i-2) < NEAR)  && DEPTHT(id.x, i-2)  > GATHERT(id.x, id-2))
 			//IMG_STORET(id.x, i-2, vec4(1,0,0,1));
 			IMG_STORET(id.x, i-2, current[0]);
 		current[0] = current[1];
