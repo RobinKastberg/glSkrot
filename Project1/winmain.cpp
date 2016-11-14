@@ -40,6 +40,10 @@ static bool variable_work_size = false;
 static int work_group_size = 128;
 static int blur_passes = 3;
 static bool blur_enabled = true;
+
+struct vec3 UP = vec3{ 0, 0, 1 };
+struct vec3 DOWN = vec3{ 0, 0, -1 };
+
 void mouse_move(int dx, int dy)
 {
 	thetax += ((float)dx)/400.0;
@@ -81,42 +85,39 @@ void init()
 		for (int j = 0; j < 5; j++) 
 		{
 			terrain_new(&q[5 * i + j], 5, i, j);
-			q[5 * i + j].lod = 5;
+			q[5 * i + j].lod = 1;
 
 		}
 	}
 
-	for (int i = 2; i < 4; i++)
-	{
-		for (int j = 2; j < 4; j++)
-		{
-			q[5 * i + j].lod = 5;
-
-		}
-	}
-
-	q[13].lod = 5;
 	for (int i = 0; i < NUM_GRASS; i++)
 	{
-		surface_new(&grass[i], 7);
-		float baseX = (float)(rand() % 100)/2.0;
-		float baseY = (float)(rand() % 100)/2.0;
-		float highX = (float)(rand() % 100) / 100.0 - 0.5;
-		float highY = (float)(rand() % 100) / 100.0 - 0.5;
-		float baseZ = 0.0;
+		surface_new(&grass[i], 5);
+		float baseX = 0.0;
+		float baseY = 0.0;
+		float rndX = (float)(rand() % 100)/20.0;
+		float rndY = (float)(rand() % 100)/20.0;
+		float highX = 0.0;
+		float baseZ =  0.0;
 		grass[i].p[0] = vec3{ baseX-0.15f,baseY,baseZ };
 		grass[i].p[1] = vec3{ baseX+0.00f,baseY,baseZ };
 		grass[i].p[2] = vec3{ baseX+0.15f,baseY,baseZ };
 
-		grass[i].p[3] = vec3{ baseX + highX / 2 - 0.075f,baseY,baseZ };
-		grass[i].p[4] = vec3{ baseX + highX / 2,baseY,baseZ };
-		grass[i].p[5] = vec3{ baseX + highX / 2 + 0.075f,baseY, baseZ };
+		grass[i].p[3] = vec3{ baseX + highX / 2 - 0.075f,baseY,baseZ+1.5f };
+		grass[i].p[4] = vec3{ baseX + highX / 2,baseY,baseZ + 1.5f };
+		grass[i].p[5] = vec3{ baseX + highX / 2 + 0.075f,baseY, baseZ +1.5f };
 
-		grass[i].p[6] = vec3{ baseX + highX,baseY,baseZ+3.0f };
+		grass[i].p[6] = vec3{ baseX + highX - 0.01f,baseY,baseZ+3.0f };
 		grass[i].p[7] = vec3{ baseX + highX,baseY,baseZ+3.0f };
-		grass[i].p[8] = vec3{ baseX + highX,baseY,baseZ+3.0f };
+		grass[i].p[8] = vec3{ baseX + highX + 0.01f,baseY,baseZ+3.0f };
+		mat4 scale;
+		mat4 translate;
+		mat4 result;
+		mat4_scale(&scale,0.1f);
+		mat4_translate(&translate, rndX, rndY,NOISE_EX(rndX, rndY)-0.01f);
 
-		mat4_scale(&models[grass[i].mesh.uniformIndex].modelMatrix, 0.1f);
+		mat4_mul(&scale, &translate, &models[grass[i].mesh.uniformIndex].modelMatrix);
+		surface_prepare(&grass[i]);
 	}
 	
 
@@ -135,9 +136,7 @@ void init()
 
 
 	globals.lightPos = vec4{ 2.5,2.5,1,0 };
-	fbo_new(&fbo, width, height);
-	glGenTextures(1, &ppTex);
-	texture(&ppTex, BUFFER_COLOR, width, height, NULL);
+	fbo_new(&fbo, 2*width, 2*height);
 	shader_init(&blur, "blur");
 	shader_compute(&blur, blur_comp, blur_comp_len);
 }
@@ -145,32 +144,40 @@ void init()
 
 void render()
 {
+	glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Frame setup");
 	glViewport(0, 0, width, height);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	mat4_perspective(&globals.projectionMatrix, 90, (float)width / height, 0.01, 5000);
-	struct vec3 up = vec3_new(0, 0, 1);
 	//vec3 positionCurve = curve_get_position(&c, fmod(globals.time, 1.0f));
 	//globals.lookAt = vec4{ positionCurve.x,positionCurve.y,positionCurve.z,1 };
 
 
-	mat4_lookat(&globals.viewMatrix, (vec3 *)&globals.cameraPosition, (vec3 *)&globals.lookAt, &up);
+	mat4_lookat(&globals.viewMatrix, (vec3 *)&globals.cameraPosition, (vec3 *)&globals.lookAt, &UP);
 
 
 	glBindBuffer(GL_UNIFORM_BUFFER, uboGlobals);
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(globals), &globals);
 	glBindBuffer(GL_UNIFORM_BUFFER, uboModels);
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(models), &models);
-
+	glPopDebugGroup();
+	glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Drawcalls");
 	//draw_snow();
 	s.steps = 4;
 	float t = globals.time;
 	fbo_render_to_texture(&fbo);
 	for (int i = 0; i < NUM_GRASS; i++)
 	{
+
+		mat4 newMatrix;
+		vec3 negCam = vec3_neg(globals.lookAt);
+		vec3 negLook = vec3_neg(globals.cameraPosition);
+		//mat4_lookat(&newMatrix, (vec3 *)&globals.lookAt, (vec3 *)&globals.cameraPosition, &DOWN);
+		//mat4_mul(&grass[i].localMatrix, &newMatrix, &models[grass[i].mesh.uniformIndex].modelMatrix);
 		grass[i].p[6].x += 0.001*sin(globals.time);
 		grass[i].p[7].x += 0.001*sin(globals.time);
 		grass[i].p[8].x += 0.001*sin(globals.time);
-		surface_prepare(&grass[i]);
+		glDisable(GL_CULL_FACE);
+		//surface_prepare(&grass[i]);
 		surface_draw(&grass[i]);
 	}
 
@@ -182,8 +189,10 @@ void render()
 	draw_skybox();
 
 	fbo_done(&fbo);
+	glPopDebugGroup();
 	if (blur_enabled)
 	{
+		glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Post processing");
 		shader_use(&blur);
 		glMemoryBarrier(GL_FRAMEBUFFER_BARRIER_BIT);
 		glBindImageTexture(0, fbo.texture, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA8);
@@ -210,11 +219,14 @@ void render()
 			glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 		}
 		glPopAttrib();
+		glPopDebugGroup();
 	}
+	glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Blit");
 	glMemoryBarrier(GL_FRAMEBUFFER_BARRIER_BIT);
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo.handle);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 	glBlitFramebuffer(0, 0, fbo.width, fbo.height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+	glPopDebugGroup();
 }
 
 void __stdcall WinMainCRTStartup() {
@@ -255,7 +267,7 @@ void __stdcall WinMainCRTStartup() {
 
 	SetCapture(hwnd);
 	GLuint query;
-	GLuint tris;
+	GLuint tris = 0;
 	glGenQueries(1, &query);
 	for(;;)
 	{

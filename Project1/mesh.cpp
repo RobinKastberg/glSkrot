@@ -10,6 +10,7 @@ void mesh_new(struct mesh *self, unsigned int numVerts, unsigned int numIndices)
 	self->numIndices = numIndices;
 	self->indices = (unsigned int *)malloc(sizeof(unsigned int)*numIndices);
 	self->uniformIndex = freePerModel++;
+	self->dirty = true;
 	mat4_scale(&models[self->uniformIndex].modelMatrix, 1.0);
 
 	glGenVertexArrays(1, &self->vao);
@@ -33,10 +34,14 @@ void mesh_prepare(struct mesh *self)
 	glBindBuffer(GL_ARRAY_BUFFER, self->vbo);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, self->numVerts*sizeof(meshData), self->data);
 	glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0,  self->numIndices * sizeof(int), self->indices);
+	self->dirty = false;
 }
 void mesh_draw(struct mesh *self, GLenum type, unsigned int count, unsigned int offset)
 {
-	glBindVertexArray(self->vao);
+	if (self->dirty)
+		mesh_prepare(self);
+	else
+		glBindVertexArray(self->vao);
 	glPatchParameteri(GL_PATCH_VERTICES, 4);
 	shader_use(&self->sp);
 	glUniform1i(glGetUniformLocation(self->sp.program, "currentModel"), self->uniformIndex);

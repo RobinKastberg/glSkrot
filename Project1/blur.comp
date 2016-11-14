@@ -10,11 +10,11 @@ layout(binding = 5) uniform sampler2D depth;
 #define IMGT(x,y) imageLoad(img_input, ivec2(y, x))
 #define IMG_STORE(x,y,value) imageStore(img_input, ivec2(x, y), value);
 #define IMG_STORET(x,y,value) imageStore(img_input, ivec2(y, x), value);
-#define DEPTH(x,y) textureGather(depth, vec2(float(x)/width, float(y)/height)).r
+#define DEPTH(x,y) texture(depth, vec2((float(x)+0.5)/width, (float(y)+0.5)/height)).r
 #define DEPTHT(x,y) DEPTH(y,x)
 uniform bool horizontal = false;
 
-const float FAR = 0.99;
+const float FAR = 0.999;
 const float NEAR = 0.95;
 void main() {
   const uvec3 id = gl_GlobalInvocationID;

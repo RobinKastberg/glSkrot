@@ -256,3 +256,10 @@ void mat4_inverse(const float * __restrict m, float * __restrict invOut)
 	for (i = 0; i < 16; i++)
 		invOut[i] = inv[i] * det;
 }
+void mat4_translate(struct mat4 * __restrict self, float x, float y, float z)
+{
+	self->c[0] = 1.0f; self->c[1] = 0; self->c[2] = 0; self->c[3] = 0;
+	self->c[4] = 0; self->c[5] = 1.0f; self->c[6] = 0; self->c[7] = 0;
+	self->c[8] = 0; self->c[9] = 0; self->c[10] = 1.0f; self->c[11] = 0;
+	self->c[12] = x; self->c[13] = y; self->c[14] = z; self->c[15] = 1.0f;
+}

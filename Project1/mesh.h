@@ -19,6 +19,7 @@ struct mesh {
 	unsigned int *indices;
 	unsigned int numIndices;
 	bool wireframe;
+	bool dirty;
 };
 void mesh_new(struct mesh *self, unsigned int numVerts, unsigned int numIndices);
 void mesh_prepare(struct mesh *self);

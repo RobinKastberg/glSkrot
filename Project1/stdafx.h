@@ -98,3 +98,5 @@ float perlin3d(float x, float y, float z, float freq, int depth);
 
 #define CRASH(str) MessageBoxA(NULL, str, __FILE__, MB_OK | MB_ICONWARNING)
 #define POW2(x) (1 << (x))
+#define NOISE_EX(x,y) (0.1*perlin2d((x), (y), 8, 10) + 1*perlin2d((x), (y),2, 4))
+#define NOISE(x,y) NOISE_EX(xoff + (float)(x) /(self->width-1),yoff + (float)(y) / (self->height-1))

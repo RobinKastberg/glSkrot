@@ -55,7 +55,8 @@ void lod(struct terrain *self, int x, int y, int size, int l)
 		lod(self, size / 2, size / 2, size / 2, l + 1);
 	}*/
 }
-#define NOISE(x,y) 0.1*perlin2d(xoff + (float)(x) /(self->width-1),yoff + (float)(y) / (self->height-1), 8, 10)
+
+
 
 void terrain_new(struct terrain *self, unsigned int max_lod, float xoff , float yoff )
 {

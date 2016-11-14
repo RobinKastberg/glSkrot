@@ -9,6 +9,7 @@ struct surface {
 	struct mesh mesh;
 	vec3 p[9];
 	int steps;
+	mat4 localMatrix;
 };
 void curve_new(struct curve *self, unsigned int steps);
 void curve_draw(struct curve *self);
